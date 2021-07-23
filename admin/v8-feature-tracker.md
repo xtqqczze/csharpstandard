@@ -16,7 +16,7 @@ null coalescing assignment | | Open |
 nullable reference types | | Open | 
 Obsolete on property accessor | | Open | 
 recursive pattern matching | | Open | 
-ranges (and indices) | **in progress** | Open | 
+ranges (and indices) | | Spec completed | 
 readonly instance members | | Open | 
 name shadowing in nested functions | | Open | 
 static local functions | | Open | 
