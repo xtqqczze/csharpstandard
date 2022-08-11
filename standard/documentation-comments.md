@@ -51,12 +51,12 @@ The text within documentation comments must be well formed according to the rule
 
 Although developers are free to create their own set of tags, a recommended set is defined in [§D.3](documentation-comments.md#d3-recommended-tags). Some of the recommended tags have special meanings:
 
--   The `<param>` tag is used to describe parameters. If such a tag is used, the documentation generator must verify that the specified parameter exists and that all parameters are described in documentation comments. If such verification fails, the documentation generator issues a warning.
+- The `<param>` tag is used to describe parameters. If such a tag is used, the documentation generator must verify that the specified parameter exists and that all parameters are described in documentation comments. If such verification fails, the documentation generator issues a warning.
 
--   The `cref` attribute can be attached to any tag to provide a reference to a code element. The documentation generator must verify that this code element exists. If the verification fails, the documentation generator issues a warning. When looking for a name described in a `cref` attribute, the documentation generator must respect namespace visibility according to using statements appearing within the source code. For code elements that are generic, the normal generic syntax (e.g., "`List<T>`") cannot be used because it produces invalid XML. Braces can be used instead of brackets (e.g.; "`List{T}`"), or the XML escape syntax can be used (e.g., "`List&lt;T&gt;`").
+- The `cref` attribute can be attached to any tag to provide a reference to a code element. The documentation generator must verify that this code element exists. If the verification fails, the documentation generator issues a warning. When looking for a name described in a `cref` attribute, the documentation generator must respect namespace visibility according to using statements appearing within the source code. For code elements that are generic, the normal generic syntax (e.g., “`List<T>`”) cannot be used because it produces invalid XML. Braces can be used instead of brackets (e.g.; “`List{T}`”), or the XML escape syntax can be used (e.g., “`List&lt;T&gt;`”).
 
--   The `<summary>` tag is intended to be used by a documentation viewer to display additional information about a type or member.
--   The `<include>` tag includes information from an external XML file.
+- The `<summary>` tag is intended to be used by a documentation viewer to display additional information about a type or member.
+- The `<include>` tag includes information from an external XML file.
 
 Note carefully that the documentation file does not provide full information about the type and members (for example, it does not contain any type information). To get such information about a type or member, the documentation file must be used in conjunction with reflection on the type or member.
 
@@ -72,8 +72,8 @@ The documentation generator must accept and process any tag that is valid accord
 `<code>`          | [§D.3.3](documentation-comments.md#d33-code)         | Set one or more lines of source code or program output
 `<example>`       | [§D.3.4](documentation-comments.md#d34-example)         | Indicate an example
 `<exception>`     | [§D.3.5](documentation-comments.md#d35-exception)         | Identifies the exceptions a method can throw
-`<list>`          | [§D.3.6](documentation-comments.md#d36-include)         | Create a list or table
 `<include>`       | [§D.3.6](documentation-comments.md#d36-include)         | Includes XML from an external file
+`<list>`          | [§D.3.7](documentation-comments.md#d37-list)         | Create a list or table
 `<para>`          | [§D.3.8](documentation-comments.md#d38-para)         | Permit structure to be added to text
 `<param>`         | [§D.3.9](documentation-comments.md#d39-param)         | Describe a parameter for a method or constructor
 `<paramref>`      | [§D.3.10](documentation-comments.md#d310-paramref)        | Identify that a word is a parameter name
@@ -85,7 +85,7 @@ The documentation generator must accept and process any tag that is valid accord
 `<summary>`       | [§D.3.16](documentation-comments.md#d316-summary)        | Describe a type or a member of a type
 `<typeparam>`     | [§D.3.17](documentation-comments.md#d317-typeparam)        | Describe a type parameter for a generic type or method
 `<typeparamref>`  | [§D.3.18](documentation-comments.md#d318-typeparamref)        | Identify that a word is a type parameter name
-`<value>`         | [§D.3.17](documentation-comments.md#d317-typeparam)        | Describe a property
+`<value>`         | [§D.3.19](documentation-comments.md#d319-value)        | Describe a property
 
 ### D.3.2 \<c\>
 
@@ -166,8 +166,12 @@ where
 ```csharp
 public class DataBaseOperations
 {
-    /// <exception cref="MasterFileFormatCorruptException">Thrown when the master file is corrupted.</exception>
-    /// <exception cref="MasterFileLockedOpenException">Thrown when the master file is already open.</exception>
+    /// <exception cref="MasterFileFormatCorruptException">
+    /// Thrown when the master file is corrupted.
+    /// </exception>
+    /// <exception cref="MasterFileLockedOpenException">
+    /// Thrown when the master file is already open.
+    /// </exception>
     public static void ReadRecord(int flag)
     {
         if (flag == 1)
@@ -550,7 +554,7 @@ where
 /// <typeparam name="T">The type stored by the list.</typeparam>
 public class MyList<T>
 {
-...
+   ...
 }
 ```
 
@@ -569,7 +573,10 @@ where
 **Example:**
 
 ```csharp
-/// <summary>This method fetches data and returns a list of <typeparamref name="T"> "/>"> .</summary>
+/// <summary>
+/// This method fetches data and returns a list of
+/// <typeparamref name="T"> "/>">.
+/// </summary>
 /// <param name="string">query to execute</param>
 public List<T> FetchData<T>(string query)
 {
@@ -630,13 +637,13 @@ The documentation generator observes the following rules when it generates the I
 - The second part of the string is the fully qualified name of the element, starting at the root of the namespace. The name of the element, its enclosing type(s), and namespace are separated by periods. If the name of the item itself has periods, they are replaced by \# (U+0023) characters. (It is assumed that no element has this character in its name.)
 - For methods and properties with arguments, the argument list follows, enclosed in parentheses. For those without arguments, the parentheses are omitted. The arguments are separated by commas. The encoding of each argument is the same as a CLI signature, as follows:
   - Arguments are represented by their documentation name, which is based on their fully qualified name, modified as follows:
-    - Arguments that represent generic types have an appended "`'`" character followed by the number of type parameters
+    - Arguments that represent generic types have an appended “`'`” character followed by the number of type parameters
     - Arguments having the `out` or `ref` modifier have an `@` following their type name. Arguments passed by value or via `params` have no special notation.
-    - Arguments that are arrays are represented as `[` *lowerbound* `:` *size* `,` ... `,` *lowerbound* `:` *size* `]` where the number of commas is the rank less one, and the lower bounds and size of each dimension, if known, are represented in decimal. If a lower bound or size is not specified, it is omitted. If the lower bound and size for a particular dimension are omitted, the "`:`" is omitted as well. Jagged arrays are represented by one "`[]`" per level.
+    - Arguments that are arrays are represented as `[` *lowerbound* `:` *size* `,` … `,` *lowerbound* `:` *size* `]` where the number of commas is the rank less one, and the lower bounds and size of each dimension, if known, are represented in decimal. If a lower bound or size is not specified, it is omitted. If the lower bound and size for a particular dimension are omitted, the “`:`” is omitted as well. Jagged arrays are represented by one “`[]`” per level.
     - Arguments that have pointer types other than `void` are represented using a `*` following the type name. A `void` pointer is represented using a type name of `System.Void`.
-    - Arguments that refer to generic type parameters defined on types are encoded using the "`` ` ``" character followed by the zero-based index of the type parameter.
-    - Arguments that use generic type parameters defined in methods use a double-backtick "``` `` ```" instead of the "`` ` ``" used for types.
-    - Arguments that refer to constructed generic types are encoded using the generic type, followed by "`{`", followed by a comma-separated list of type arguments, followed by "`}`".
+    - Arguments that refer to generic type parameters defined on types are encoded using the “`` ` ``” character followed by the zero-based index of the type parameter.
+    - Arguments that use generic type parameters defined in methods use a double-backtick “``` `` ```” instead of the “`` ` ``” used for types.
+    - Arguments that refer to constructed generic types are encoded using the generic type, followed by “`{`”, followed by a comma-separated list of type arguments, followed by “`}`”.
 
 ### D.4.3 ID string examples
 
@@ -867,7 +874,7 @@ namespace Acme
 
 The complete set of binary operator function names used is as follows: `op_Addition`, `op_Subtraction`, `op_Multiply`, `op_Division`, `op_Modulus`, `op_BitwiseAnd`, `op_BitwiseOr`, `op_ExclusiveOr`, `op_LeftShift`, `op_RightShift`, `op_Equality`, `op_Inequality`, `op_LessThan`, `op_LessThanOrEqual`, `op_GreaterThan`, and `op_GreaterThanOrEqual`.
 
-**Conversion operators** have a trailing "`~`" followed by the return type.
+**Conversion operators** have a trailing “`~`” followed by the return type.
 
 ```csharp
 namespace Acme
@@ -1009,7 +1016,7 @@ namespace Graphics
         /// A string representing a point's location, in the form (x,y),
         /// without any leading, training, or embedded whitespace.
         /// </returns>
-        public override string ToString() => $"("{X},{Y})";
+        public override string ToString() => $"({X},{Y})";
         
         /// <summary>
         /// This operator determines whether two Points have the same location.
@@ -1058,135 +1065,136 @@ Here is the output produced by one documentation generator when given the source
 ```xml
 <?xml version="1.0"?>
 <doc>
-    <assembly>
-        <name>Point</name>
-    </assembly>
-    <members>
-        <member name="T:Graphics.Point">
-        <summary>Class <c>Point</c> models a point in a two-dimensional
-        plane.
+  <assembly>
+    <name>Point</name>
+  </assembly>
+  <members>
+    <member name="T:Graphics.Point">
+    <summary>Class <c>Point</c> models a point in a two-dimensional
+    plane.
+    </summary>
+    </member>
+      <member name="F:Graphics.Point.x">
+      <summary>
+        Instance variable <c>x</c> represents the point's x-coordinate.
+      </summary>
+    </member>
+    <member name="F:Graphics.Point.y">
+      <summary>
+        Instance variable <c>y</c> represents the point's y-coordinate.
+      </summary>
+    </member>
+    <member name="M:Graphics.Point.#ctor">
+      <summary>This constructor initializes the new Point to (0, 0).</summary>
+    </member>
+    <member name="M:Graphics.Point.#ctor(System.Int32,System.Int32)">
+      <summary>
+        This constructor initializes the new Point to
+        (<paramref name="xPosition"/>,<paramref name="yor"/>).
+      </summary>
+      <param><c>xPosition</c> is the new Point's x-coordinate.</param>
+      <param><c>yPosition</c> is the new Point's y-coordinate.</param>
+    </member>
+    <member name="M:Graphics.Point.Move(System.Int32,System.Int32)">
+      <summary>
+        This method changes the point's location to
+        the given coordinates.
+        <see cref="M:Graphics.Point.Translate(System.Int32,System.Int32)"/>
+      </summary>
+      <param><c>xPosition</c> is the new x-coordinate.</param>
+      <param><c>yPosition</c> is the new y-coordinate.</param>
+      </member>
+    <member name="M:Graphics.Point.Translate(System.Int32,System.Int32)">
+      <summary>
+        This method changes the point's location by
+        the given x- and y-offsets.
+        <example>For example:
+        <code>
+        Point p = new Point(3,5);
+        p.Translate(-1,3);
+        </code>
+        results in <c>p</c>'s having the value (2,8).
+        </example>
+        <see cref="M:Graphics.Point.Move(System.Int32,System.Int32)"/>
+      </summary>
+      <param><c>dx</c> is the relative x-offset.</param>
+      <param><c>dy</c> is the relative y-offset.</param>
+    </member>
+    <member name="M:Graphics.Point.Equals(System.Object)">
+      <summary>
+        This method determines whether two Points have the same location.
+      </summary>
+      <param>
+        <c>o</c> is the object to be compared to the current object.
+      </param>
+      <returns>
+        True if the Points have the same location and they have
+        the exact same type; otherwise, false.
+      </returns>
+      <seealso 
+        cref="M:Graphics.Point.op_Equality(Graphics.Point,Graphics.Point)" />
+      <seealso 
+        cref="M:Graphics.Point.op_Inequality(Graphics.Point,Graphics.Point)"/>
+    </member>
+     <member name="M:Graphics.Point.ToString">
+      <summary>
+        Report a point's location as a string.
+      </summary>
+      <returns>
+        A string representing a point's location, in the form (x,y),
+        without any leading, training, or embedded whitespace.
+      </returns>
+     </member>
+    <member name="M:Graphics.Point.op_Equality(Graphics.Point,Graphics.Point)">
+      <summary>
+        This operator determines whether two Points have the same location.
+      </summary>
+      <param><c>p1</c> is the first Point to be compared.</param>
+      <param><c>p2</c> is the second Point to be compared.</param>
+      <returns>
+        True if the Points have the same location and they have
+        the exact same type; otherwise, false.
+      </returns>
+      <seealso cref="M:Graphics.Point.Equals(System.Object)"/>
+      <seealso
+        cref="M:Graphics.Point.op_Inequality(Graphics.Point,Graphics.Point)"/>
+    </member>
+    <member
+        name="M:Graphics.Point.op_Inequality(Graphics.Point,Graphics.Point)">
+      <summary>
+        This operator determines whether two Points have the same location.
+      </summary>
+      <param><c>p1</c> is the first Point to be compared.</param>
+      <param><c>p2</c> is the second Point to be compared.</param>
+      <returns>
+        True if the Points do not have the same location and the
+        exact same type; otherwise, false.
+      </returns>
+      <seealso cref="M:Graphics.Point.Equals(System.Object)"/>
+      <seealso
+        cref="M:Graphics.Point.op_Equality(Graphics.Point,Graphics.Point)"/>
+      </member>
+      <member name="M:Graphics.Point.Main">
+        <summary>
+          This is the entry point of the Point class testing program.
+          <para>
+            This program tests each method and operator, and
+            is intended to be run after any non-trivial maintenance has
+            been performed on the Point class.
+          </para>
         </summary>
-        </member>
-            <member name="F:Graphics.Point.x">
-            <summary>
-                Instance variable <c>x</c> represents the point's x-coordinate.
-            </summary>
-        </member>
-        <member name="F:Graphics.Point.y">
-            <summary>
-                Instance variable <c>y</c> represents the point's y-coordinate.
-            </summary>
-        </member>
-        <member name="M:Graphics.Point.#ctor">
-            <summary>This constructor initializes the new Point to (0, 0).</summary>
-        </member>
-        <member name="M:Graphics.Point.#ctor(System.Int32,System.Int32)">
-            <summary>
-                This constructor initializes the new Point to
-                (<paramref name="xPosition"/>,<paramref name="yor"/>).
-            </summary>
-            <param><c>xPosition</c> is the new Point's x-coordinate.</param>
-            <param><c>yPosition</c> is the new Point's y-coordinate.</param>
-        </member>
-        <member name="M:Graphics.Point.Move(System.Int32,System.Int32)">
-            <summary>
-                This method changes the point's location to
-                the given coordinates.
-                <see cref="M:Graphics.Point.Translate(System.Int32,System.Int32)"/>
-            </summary>
-            <param><c>xPosition</c> is the new x-coordinate.</param>
-            <param><c>yPosition</c> is the new y-coordinate.</param>
-            </member>
-        <member name="M:Graphics.Point.Translate(System.Int32,System.Int32)">
-            <summary>
-                This method changes the point's location by
-                the given x- and y-offsets.
-                <example>For example:
-                <code>
-                Point p = new Point(3,5);
-                p.Translate(-1,3);
-                </code>
-                results in <c>p</c>'s having the value (2,8).
-                </example>
-                <see cref="M:Graphics.Point.Move(System.Int32,System.Int32)"/>
-            </summary>
-            <param><c>dx</c> is the relative x-offset.</param>
-            <param><c>dy</c> is the relative y-offset.</param>
-        </member>
-        <member name="M:Graphics.Point.Equals(System.Object)">
-            <summary>
-                This method determines whether two Points have the same location.
-            </summary>
-            <param>
-                <c>o</c> is the object to be compared to the current object.
-            </param>
-            <returns>
-                True if the Points have the same location and they have
-                the exact same type; otherwise, false.
-            </returns>
-            <seealso 
-                cref="M:Graphics.Point.op_Equality(Graphics.Point,Graphics.Point)" />
-            <seealso 
-                cref="M:Graphics.Point.op_Inequality(Graphics.Point,Graphics.Point)"/>
-        </member>
-         <member name="M:Graphics.Point.ToString">
-            <summary>
-                Report a point's location as a string.
-            </summary>
-            <returns>
-                A string representing a point's location, in the form (x,y),
-                without any leading, training, or embedded whitespace.
-            </returns>
-         </member>
-        <member name="M:Graphics.Point.op_Equality(Graphics.Point,Graphics.Point)">
-            <summary>
-                This operator determines whether two Points have the same location.
-            </summary>
-            <param><c>p1</c> is the first Point to be compared.</param>
-            <param><c>p2</c> is the second Point to be compared.</param>
-            <returns>
-                True if the Points have the same location and they have
-                the exact same type; otherwise, false.
-            </returns>
-            <seealso cref="M:Graphics.Point.Equals(System.Object)"/>
-            <seealso
-                cref="M:Graphics.Point.op_Inequality(Graphics.Point,Graphics.Point)"/>
-        </member>
-        <member name="M:Graphics.Point.op_Inequality(Graphics.Point,Graphics.Point)">
-            <summary>
-                This operator determines whether two Points have the same location.
-            </summary>
-            <param><c>p1</c> is the first Point to be compared.</param>
-            <param><c>p2</c> is the second Point to be compared.</param>
-            <returns>
-                True if the Points do not have the same location and the
-                exact same type; otherwise, false.
-            </returns>
-            <seealso cref="M:Graphics.Point.Equals(System.Object)"/>
-            <seealso
-                cref="M:Graphics.Point.op_Equality(Graphics.Point,Graphics.Point)"/>
-            </member>
-            <member name="M:Graphics.Point.Main">
-                <summary>
-                    This is the entry point of the Point class testing program.
-                    <para>
-                        This program tests each method and operator, and
-                        is intended to be run after any non-trivial maintenance has
-                        been performed on the Point class.
-                    </para>
-                </summary>
-            </member>
-            <member name="P:Graphics.Point.X">
-                <value>
-                    Property <c>X</c> represents the point's x-coordinate.
-                </value>
-            </member>
-            <member name="P:Graphics.Point.Y">
-                <value>
-                    Property <c>Y</c> represents the point's y-coordinate.
-                </value>
-        </member>
-    </members>
+      </member>
+      <member name="P:Graphics.Point.X">
+        <value>
+          Property <c>X</c> represents the point's x-coordinate.
+        </value>
+      </member>
+      <member name="P:Graphics.Point.Y">
+        <value>
+          Property <c>Y</c> represents the point's y-coordinate.
+        </value>
+    </member>
+  </members>
 </doc>
 ```
 

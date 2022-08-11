@@ -5,11 +5,13 @@
 A ***conversion*** causes an expression to be converted to, or treated as being of, a particular type; in the former case a conversion may involve a change in representation. Conversions can be ***implicit*** or ***explicit***, and this determines whether an explicit cast is required.
 
 > *Example*: For instance, the conversion from type `int` to type `long` is implicit, so expressions of type `int` can implicitly be treated as type `long`. The opposite conversion, from type `long` to type `int`, is explicit and so an explicit cast is required.
+>
 > ```csharp
 > int a = 123;
 > long b = a;      // implicit conversion from int to long
 > int c = (int) b; // explicit conversion from long to int
 > ```
+>
 > *end example*
 
 Some conversions are defined by the language. Programs may also define their own conversions ([§10.5](conversions.md#105-user-defined-conversions)).
@@ -17,13 +19,23 @@ Some conversions are defined by the language. Programs may also define their own
 Some conversions in the language are defined from expressions to types, others from types to types. A conversion from a type applies to all expressions that have that type.
 
 > *Example*:
+>
 > ```csharp
 > enum Color { Red, Blue, Green }
-> Color c0 = 0;        // The expression 0 converts implicitly to enum types
-> Color c1 = (Color)1; // other int expressions need explicit conversion
-> String x = null;     // Conversion from null expression (no type) to String
-> Func<int, int> square = x => x * x; // Conversion from lambda expression to delegate type
+>
+> // The expression 0 converts implicitly to enum types
+> Color c0 = 0;
+>
+> // Other int expressions need explicit conversion
+> Color c1 = (Color)1;
+>
+> // Conversion from null expression (no type) to String
+> String x = null;
+>
+> // Conversion from lambda expression to delegate type
+> Func<int, int> square = x => x * x;
 > ```
+>
 > *end example*
 
 ## 10.2 Implicit conversions
@@ -145,6 +157,7 @@ Boxing a value of a *non-nullable-value-type* consists of allocating an object i
 Boxing a value of a *nullable_value_type* produces a null reference if it is the null value (`HasValue` is false), or the result of unwrapping and boxing the underlying value otherwise.
 
 > *Note*: The process of boxing may be imagined in terms of the existence of a boxing class for every value type. For example, consider a `struct S` implementing an interface `I`, with a boxing class called `S_Boxing`.
+>
 > ```csharp
 > interface I
 > {
@@ -171,17 +184,23 @@ Boxing a value of a *nullable_value_type* produces a null reference if it is the
 >     }
 > }
 > ```
+>
 > Boxing a value `v` of type `S` now consists of executing the expression `new S_Boxing(v)` and returning the resulting instance as a value of the target type of the conversion. Thus, the statements
+>
 > ```csharp
 > S s = new S();
 > object box = s;
 > ```
+>
 > can be thought of as similar to:
+>
 > ```csharp
 > S s = new S();
 > object box = new S_Boxing(s);
 > ```
+>
 > The imagined boxing type described above does not actually exist. Instead, a boxed value of type `S` has the runtime type `S`, and a runtime type check using the `is` operator with a value type as the right operand tests whether the left operand is a boxed version of the right operand. For example,
+>
 > ```csharp
 > int i = 123;
 > object box = i;
@@ -189,9 +208,11 @@ Boxing a value of a *nullable_value_type* produces a null reference if it is the
 >     Console.Write("Box contains an int");
 > }
 > ```
-> will output the string "Box contains an `int`" on the console.
+>
+> will output the string “Box contains an `int`” on the console.
 >
 > A boxing conversion implies making a copy of the value being boxed. This is different from a conversion of a *reference_type* to type `object`, in which the value continues to reference the same instance and simply is regarded as the less derived type `object`. For example, given the declaration
+>
 > ```csharp
 > struct Point
 > {
@@ -204,16 +225,21 @@ Boxing a value of a *nullable_value_type* produces a null reference if it is the
 >     }
 > }
 > ```
+>
 > the following statements
+>
 > ```csharp
 > Point p = new Point(10, 10);
 > object box = p;
 > p.x = 20;
 > Console.Write(((Point)box).x);
 > ```
+>
 > will output the value 10 on the console because the implicit boxing operation that occurs in the assignment of `p` to `box` causes the value of `p` to be copied. Had `Point` been declared a `class` instead, the value 20 would be output because `p` and `box` would reference the same instance.
-> 
-> The analogy of a boxing class should not be used as more than a helpful tool for picturing how boxing works conceptually. There are numerous subtle differences between the behavior described by this specification and the behavior that would result from boxing being implemented in precisely this manner. *end note*
+>
+> The analogy of a boxing class should not be used as more than a helpful tool for picturing how boxing works conceptually. There are numerous subtle differences between the behavior described by this specification and the behavior that would result from boxing being implemented in precisely this manner.
+>
+> *end note*
 
 ### 10.2.10 Implicit dynamic conversions
 
@@ -222,6 +248,7 @@ An implicit dynamic conversion exists from an expression of type dynamic to any 
 This implicit conversion seemingly violates the advice in the beginning of [§10.2](conversions.md#102-implicit-conversions) that an implicit conversion should never cause an exception. However, it is not the conversion itself, but the *finding* of the conversion that causes the exception. The risk of run-time exceptions is inherent in the use of dynamic binding. If dynamic binding of the conversion is not desired, the expression can be first converted to `object`, and then to the desired type.
 
 > *Example*: The following illustrates implicit dynamic conversions:
+>
 > ```csharp
 > object o = "object";
 > dynamic d = "dynamic";
@@ -229,7 +256,10 @@ This implicit conversion seemingly violates the advice in the beginning of [§10
 > string s2 = d;         // Compiles and succeeds at run-time
 > int i = d;             // Compiles but fails at run-time – no conversion exists
 > ```
-> The assignments to `s2` and `i` both employ implicit dynamic conversions, where the binding of the operations is suspended until run-time. At run-time, implicit conversions are sought from the run-time type of `d`(`string`) to the target type. A conversion is found to `string` but not to `int`. *end example*
+>
+> The assignments to `s2` and `i` both employ implicit dynamic conversions, where the binding of the operations is suspended until run-time. At run-time, implicit conversions are sought from the run-time type of `d`(`string`) to the target type. A conversion is found to `string` but not to `int`.
+>
+> *end example*
 
 ### 10.2.11 Implicit constant expression conversions
 
@@ -320,7 +350,7 @@ The explicit numeric conversions possibly lose information or possibly cause exc
 - For a conversion from an integral type to another integral type, the processing depends on the overflow checking context ([§11.7.18](expressions.md#11718-the-checked-and-unchecked-operators)) in which the conversion takes place:
   - In a `checked` context, the conversion succeeds if the value of the source operand is within the range of the destination type, but throws a `System.OverflowException` if the value of the source operand is outside the range of the destination type.
   - In an `unchecked` context, the conversion always succeeds, and proceeds as follows.
-    - If the source type is larger than the destination type, then the source value is truncated by discarding its "extra" most significant bits. The result is then treated as a value of the destination type.
+    - If the source type is larger than the destination type, then the source value is truncated by discarding its “extra” most significant bits. The result is then treated as a value of the destination type.
     - If the source type is the same size as the destination type, then the source value is treated as a value of the destination type
 - For a conversion from `decimal` to an integral type, the source value is rounded towards zero to the nearest integral value, and this integral value becomes the result of the conversion. If the resulting integral value is outside the range of the destination type, a `System.OverflowException` is thrown.
 - For a conversion from `float` or `double` to an integral type, the processing depends on the overflow-checking context ([§11.7.18](expressions.md#11718-the-checked-and-unchecked-operators)) in which the conversion takes place:
@@ -335,9 +365,9 @@ The explicit numeric conversions possibly lose information or possibly cause exc
 - For a conversion from `double` to `float`, the `double` value is rounded to the nearest `float` value. If the `double` value is too small to represent as a `float`, the result becomes zero with the same sign as the value. If the magnitude of the `double` value is too large to represent as a `float`, the result becomes infinity with the same sign as the value. If the `double` value is NaN, the result is also NaN.
 - For a conversion from `float` or `double` to `decimal`, the source value is converted to `decimal` representation and rounded to the nearest number if required ([§8.3.8](types.md#838-the-decimal-type)).
   - If the source value is too small to represent as a `decimal`, the result becomes zero, preserving the sign of the original value if `decimal` supports signed zero values.
-  - If the source value's magnitude is too large to represent as a `decimal`, or that value is infinity, the result is infinity preserving the sign of the original value, if the decimal representation supports infinities; otherwise a System.OverflowException is thrown.
+  - If the source value’s magnitude is too large to represent as a `decimal`, or that value is infinity, the result is infinity preserving the sign of the original value, if the decimal representation supports infinities; otherwise a System.OverflowException is thrown.
   - If the source value is NaN, the result is NaN if the decimal representation supports NaNs; otherwise a System.OverflowException is thrown.
-- For a conversion from `decimal` to `float` or `double`, the `decimal` value is rounded to the nearest `double` or `float` value. If the source value's magnitude is too large to represent in the target type, or that value is infinity, the result is infinity preserving the sign of the original value. If the source value is NaN, the result is NaN. While this conversion may lose precision, it never causes an exception to be thrown.
+- For a conversion from `decimal` to `float` or `double`, the `decimal` value is rounded to the nearest `double` or `float` value. If the source value’s magnitude is too large to represent in the target type, or that value is infinity, the result is infinity preserving the sign of the original value. If the source value is NaN, the result is NaN. While this conversion may lose precision, it never causes an exception to be thrown.
 
 > *Note:* The `decimal` type is not required to support infinities or NaN values but may do so; its range may be smaller than the range of `float` and `double`, but is not guaranteed to be. For `decimal` representations without infinities or NaN values, and with a range smaller than `float`, the result of a conversion from `decimal` to either `float` or `double` will never be infinity or NaN. *end note*
 
@@ -405,15 +435,19 @@ An unboxing operation to a *non_nullable_value_type* consists of first checking 
 Unboxing to a *nullable_value_type* produces the null value of the *nullable_value_type* if the source operand is `null`, or the wrapped result of unboxing the object instance to the underlying type of the *nullable_value_type* otherwise.
 
 > *Note*: Referring to the imaginary boxing class described in [§10.2.9](conversions.md#1029-boxing-conversions), an unboxing conversion of an object box to a *value_type* `S` consists of executing the expression `((S_Boxing)box).value`. Thus, the statements
+>
 > ```csharp
 > object box = new S();
 > S s = (S)box;
 > ```
+>
 > conceptually correspond to
+>
 > ```csharp
 > object box = new S_Boxing(new S());
 > S s = ((S_Boxing)box).value;
 > ```
+>
 > *end note*
 
 For an unboxing conversion to a given *non_nullable_value_type* to succeed at run-time, the value of the source operand shall be a reference to a boxed value of that *non_nullable_value_type*. If the source operand is `null` a `System.NullReferenceException` is thrown. If the source operand is a reference to an incompatible object, a `System.InvalidCastException` is thrown.
@@ -427,6 +461,7 @@ An explicit dynamic conversion exists from an expression of type `dynamic` to an
 If dynamic binding of the conversion is not desired, the expression can be first converted to `object`, and then to the desired type.
 
 > *Example*: Assume the following class is defined:
+>
 > ```csharp
 > class C
 > {
@@ -443,14 +478,19 @@ If dynamic binding of the conversion is not desired, the expression can be first
 >     }
 > }
 > ```
+>
 > The following illustrates explicit dynamic conversions:
+>
 > ```csharp
 > object o = "1";
 > dynamic d = "2";
-> var c1 = (C)o; // Compiles, but explicit reference conversion fails\
+> var c1 = (C)o; // Compiles, but explicit reference conversion fails
 > var c2 = (C)d; // Compiles and user defined conversion succeeds
 > ```
-> The best conversion of `o` to `C` is found at compile-time to be an explicit reference conversion. This fails at run-time, because `"1"` is not in fact a `C`. The conversion of `d` to `C` however, as an explicit dynamic conversion, is suspended to run-time, where a user defined conversion from the run-time type of `d` (`string`) to `C` is found, and succeeds. *end example*
+>
+> The best conversion of `o` to `C` is found at compile-time to be an explicit reference conversion. This fails at run-time, because `"1"` is not in fact a `C`. The conversion of `d` to `C` however, as an explicit dynamic conversion, is suspended to run-time, where a user defined conversion from the run-time type of `d` (`string`) to `C` is found, and succeeds.
+>
+> *end example*
 
 ### 10.3.8 Explicit conversions involving type parameters
 
@@ -459,7 +499,7 @@ For a *type_parameter* `T` that is known to be a reference type ([§14.2.5](clas
 - From the effective base class `C` of `T` to `T` and from any base class of `C` to `T`.
 - From any *interface_type* to `T`.
 - From `T` to any *interface_type* `I` provided there isn’t already an implicit reference conversion from `T` to `I`.
-- From a *type_parameter* `U` to `T` provided that `T` depends on `U` ([§14.2.5](classes.md#1425-type-parameter-constraints)). 
+- From a *type_parameter* `U` to `T` provided that `T` depends on `U` ([§14.2.5](classes.md#1425-type-parameter-constraints)).
   > *Note*: Since `T` is known to be a reference type, within the scope of `T`, the run-time type of U will always be a reference type, even if `U` is not known to be a reference type at compile-time. *end note*
 
 For a *type_parameter* `T` that is *not* known to be a reference type ([§14.2.5](classes.md#1425-type-parameter-constraints)), the following conversions involving `T` are considered to be unboxing conversions ([§10.3.6](conversions.md#1036-unboxing-conversions)) at compile-time. At run-time, if `T` is a value type, the conversion is executed as an unboxing conversion. At run-time, if `T` is a reference type, the conversion is executed as an explicit reference conversion or identity conversion.
@@ -470,7 +510,7 @@ For a *type_parameter* `T` that is *not* known to be a reference type ([§14.2.5
 
 For a *type_parameter* `T` that is *not* known to be a reference type ([§14.2.5](classes.md#1425-type-parameter-constraints)), the following explicit conversions exist:
 
-- From `T` to any *interface_type* `I` provided there is not already an implicit conversion from `T` to `I`. This conversion consists of an implicit boxing conversion ([§10.2.9](conversions.md#1029-boxing-conversions)) from `T` to object followed by an explicit reference conversion from object to `I`. At run-time, if `T` is a value type, the conversion is executed as a boxing conversion followed by an explicit reference conversion. At run-time, if `T` is a reference type, the conversion is executed as an explicit reference conversion.
+- From `T` to any *interface_type* `I` provided there is not already an implicit conversion from `T` to `I`. This conversion consists of an implicit boxing conversion ([§10.2.9](conversions.md#1029-boxing-conversions)) from `T` to `object` followed by an explicit reference conversion from `object` to `I`. At run-time, if `T` is a value type, the conversion is executed as a boxing conversion followed by an explicit reference conversion. At run-time, if `T` is a reference type, the conversion is executed as an explicit reference conversion.
 - From a type parameter `U` to `T` provided that `T` depends on `U` ([§14.2.5](classes.md#1425-type-parameter-constraints)). At run-time, if `T` is a value type and `U` is a reference type, the conversion is executed as an unboxing conversion. At run-time, if both `T` and `U` are value types, then `T` and `U` are necessarily the same type and no conversion is performed. At run-time, if `T` is a reference type, then `U` is necessarily also a reference type and the conversion is executed as an explicit reference conversion or identity conversion.
 
 In all cases, the rules ensure that a conversion is executed as an unboxing conversion if and only if at run-time the conversion is from a reference type to a value type.
@@ -478,6 +518,7 @@ In all cases, the rules ensure that a conversion is executed as an unboxing conv
 The above rules do not permit a direct explicit conversion from an unconstrained type parameter to a non-interface type, which might be surprising. The reason for this rule is to prevent confusion and make the semantics of such conversions clear.
 
 > *Example*: Consider the following declaration:
+>
 > ```csharp
 > class X<T>
 > {
@@ -487,7 +528,9 @@ The above rules do not permit a direct explicit conversion from an unconstrained
 >     }
 > }
 > ```
+>
 > If the direct explicit conversion of `t` to `long` were permitted, one might easily expect that `X<int>.F(7)` would return `7L`. However, it would not, because the standard numeric conversions are only considered when the types are known to be numeric at binding-time. In order to make the semantics clear, the above example must instead be written:
+>
 > ```csharp
 > class X<T>
 > {
@@ -497,7 +540,10 @@ The above rules do not permit a direct explicit conversion from an unconstrained
 >     }
 > }
 > ```
-> This code will now compile but executing `X<int>.F(7)` would then throw an exception at run-time, since a boxed `int` cannot be converted directly to a `long`. *end example*
+>
+> This code will now compile but executing `X<int>.F(7)` would then throw an exception at run-time, since a boxed `int` cannot be converted directly to a `long`.
+>
+> *end example*
 
 ### 10.3.9 User-defined explicit conversions
 
@@ -555,7 +601,7 @@ A user-defined conversion converts a ***source expression***, which may have a 
 
 - Finding the set of classes and structs from which user-defined conversion operators will be considered. This set consists of the source type and its base classes, if the source type exists, along with the target type and its base classes. For this purpose it is assumed that only classes and structs can declare user-defined operators, and that non-class types have no base classes. Also, if either the source or target type is a nullable-value-type, their underlying type is used instead.
 - From that set of types, determining which user-defined and lifted conversion operators are applicable. For a conversion operator to be applicable, it shall be possible to perform a standard conversion ([§10.4](conversions.md#104-standard-conversions)) from the source expression to the operand type of the operator, and it shall be possible to perform a standard conversion from the result type of the operator to the target type.
-- From the set of applicable user-defined operators, determining which operator is unambiguously the most-specific. In general terms, the most-specific operator is the operator whose operand type is "closest" to the source expression and whose result type is "closest" to the target type. User-defined conversion operators are preferred over lifted conversion operators. The exact rules for establishing the most-specific user-defined conversion operator are defined in the following subclauses.
+- From the set of applicable user-defined operators, determining which operator is unambiguously the most-specific. In general terms, the most-specific operator is the operator whose operand type is “closest” to the source expression and whose result type is “closest” to the target type. User-defined conversion operators are preferred over lifted conversion operators. The exact rules for establishing the most-specific user-defined conversion operator are defined in the following subclauses.
 
 Once a most-specific user-defined conversion operator has been identified, the actual execution of the user-defined conversion involves up to three steps:
 
@@ -568,8 +614,8 @@ Evaluation of a user-defined conversion never involves more than one user-define
 - Exact definitions of evaluation of user-defined implicit or explicit conversions are given in the following subclauses. The definitions make use of the following terms:
 - If a standard implicit conversion ([§10.4.2](conversions.md#1042-standard-implicit-conversions)) exists from a type `A` to a type `B`, and if neither `A` nor `B` are *interface_type* `s`, then `A` is said to be ***encompassed by*** `B`, and `B` is said to ***encompass*** `A`.
 - If a standard implicit conversion ([§10.4.2](conversions.md#1042-standard-implicit-conversions)) exists from an expression `E` to a type `B`, and if neither `B` nor the type of `E` (if it has one) are *interface_type* `s`, then `E` is said to be *encompassed by* `B`, and `B` is said to *encompass* `E`.
-- The ***most-encompassing type*** in a set of types is the one type that encompasses all other types in the set. If no single type encompasses all other types, then the set has no most-encompassing type. In more intuitive terms, the most-encompassing type is the "largest" type in the set—the one type to which each of the other types can be implicitly converted.
-- The ***most-encompassed type*** in a set of types is the one type that is encompassed by all other types in the set. If no single type is encompassed by all other types, then the set has no most-encompassed type. In more intuitive terms, the most-encompassed type is the "smallest" type in the set—the one type that can be implicitly converted to each of the other types.
+- The ***most-encompassing type*** in a set of types is the one type that encompasses all other types in the set. If no single type encompasses all other types, then the set has no most-encompassing type. In more intuitive terms, the most-encompassing type is the “largest” type in the set—the one type to which each of the other types can be implicitly converted.
+- The ***most-encompassed type*** in a set of types is the one type that is encompassed by all other types in the set. If no single type is encompassed by all other types, then the set has no most-encompassed type. In more intuitive terms, the most-encompassed type is the “smallest” type in the set—the one type that can be implicitly converted to each of the other types.
 
 ### 10.5.4 User-defined implicit conversions
 
@@ -668,11 +714,12 @@ Specifically, an anonymous function `F` is compatible with a delegate type `D`
 - If `F` has an explicitly typed parameter list, each parameter in `D` has the same type and modifiers as the corresponding parameter in `F`.
 - If `F` has an implicitly typed parameter list, `D` has no ref or out parameters.
 - If the body of `F` is an expression, and *either* `D` has a void return type *or* `F` is async and `D` has the return type Task, then when each parameter of `F` is given the type of the corresponding parameter in `D`, the body of `F` is a valid expression (w.r.t [§11](expressions.md#11-expressions)) that would be permitted as a *statement_expression* ([§12.7](statements.md#127-expression-statements)).
-- If the body of `F` is a statement block, and *either* `D` has a void return type *or* `F` is async and `D` has the return type Task, then when each parameter of `F` is given the type of the corresponding parameter in `D`, the body of `F` is a valid statement block (w.r.t [§12.3](statements.md#123-blocks)) in which no `return` statement specifies an expression.
+- If the body of `F` is a block, and *either* `D` has a void return type *or* `F` is async and `D` has the return type Task, then when each parameter of `F` is given the type of the corresponding parameter in `D`, the body of `F` is a valid block (w.r.t [§12.3](statements.md#123-blocks)) in which no `return` statement specifies an expression.
 - If the body of `F` is an expression, and *either* `F` is non-async and `D` has a non-`void` return type `T`, *or* `F` is async and `D` has a return type `Task<T>`, then when each parameter of `F` is given the type of the corresponding parameter in `D`, the body of `F` is a valid expression (w.r.t [§11](expressions.md#11-expressions)) that is implicitly convertible to `T`.
-- If the body of `F` is a statement block, and *either* `F` is non-async and `D` has a non-void return type `T`, *or* `F` is async and `D` has a return type `Task<T>`, then when each parameter of `F` is given the type of the corresponding parameter in `D`, the body of `F` is a valid statement block (w.r.t [§12.3](statements.md#123-blocks)) with a non-reachable end point in which each return statement specifies an expression that is implicitly convertible to `T`.
+- If the body of `F` is a block, and *either* `F` is non-async and `D` has a non-void return type `T`, *or* `F` is async and `D` has a return type `Task<T>`, then when each parameter of `F` is given the type of the corresponding parameter in `D`, the body of `F` is a valid block (w.r.t [§12.3](statements.md#123-blocks)) with a non-reachable end point in which each return statement specifies an expression that is implicitly convertible to `T`.
 
 > *Example*: The following examples illustrate these rules:
+>
 > ```csharp
 > delegate void D(int x);
 > D d1 = delegate { };                         // Ok
@@ -713,28 +760,37 @@ Specifically, an anonymous function `F` is compatible with a delegate type `D`
 >     return "Hello";
 > };
 > ```
+>
 > *end example*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: The examples that follow use a generic delegate type `Func<A,R>` that represents a function that takes an argument of type `A` and returns a value of type `R`:
+>
 > ```csharp
 > delegate R Func<A,R>(A arg);
 > ```
+>
 > In the assignments
+>
 > ```csharp
 > Func<int,int> f1 = x => x + 1; // Ok
 > Func<int,double> f2 = x => x + 1; // Ok
 > Func<double,int> f3 = x => x + 1; // Error
 > Func<int, Task<int>> f4 = async x => x + 1; // Ok
 > ```
+>
 > the parameter and return types of each anonymous function are determined from the type of the variable to which the anonymous function is assigned.
-> 
+>
 > The first assignment successfully converts the anonymous function to the delegate type `Func<int,int>` because, when `x` is given type `int`, `x + 1` is a valid expression that is implicitly convertible to type `int`.
-> 
+>
 > Likewise, the second assignment successfully converts the anonymous function to the delegate type Func<int,double> because the result of `x + 1` (of type `int`) is implicitly convertible to type `double`.
-> 
+>
 > However, the third assignment is a compile-time error because, when `x` is given type `double`, the result of `x + 1` (of type `double`) is not implicitly convertible to type `int`.
-> 
-> The fourth assignment successfully converts the anonymous async function to the delegate type `Func<int, Task<int>>` because the result of `x + 1` (of type `int`) is implicitly convertible to the effective return type `int` of the async lambda, which has a return type `Task<int>`. *end example*
+>
+> The fourth assignment successfully converts the anonymous async function to the delegate type `Func<int, Task<int>>` because the result of `x + 1` (of type `int`) is implicitly convertible to the effective return type `int` of the async lambda, which has a return type `Task<int>`.
+>
+> *end example*
 
 A lambda expression `F` is compatible with an expression tree type `Expression<D>` if `F` is compatible with the delegate type `D`. This does not apply to anonymous methods, only lambda expressions.
 
@@ -747,6 +803,7 @@ Conversion of an anonymous function to a delegate type produces a delegate insta
 The invocation list of a delegate produced from an anonymous function contains a single entry. The exact target object and target method of the delegate are unspecified. In particular, it is unspecified whether the target object of the delegate is `null`, the `this` value of the enclosing function member, or some other object.
 
 Conversions of semantically identical anonymous functions with the same (possibly empty) set of captured outer variable instances to the same delegate types are permitted (but not required) to return the same delegate instance. The term semantically identical is used here to mean that execution of the anonymous functions will, in all cases, produce the same effects given the same arguments. This rule permits code such as the following to be optimized.
+
 ```csharp
 delegate double Function(double x);
 
@@ -770,6 +827,7 @@ class Test
     }
 }
 ```
+
 Since the two anonymous function delegates have the same (empty) set of captured outer variables, and since the anonymous functions are semantically identical, the compiler is permitted to have the delegates refer to the same target method. Indeed, the compiler is permitted to return the very same delegate instance from both anonymous function expressions.
 
 ### 10.7.3 Evaluation of lambda expression conversions to expression tree types
@@ -795,7 +853,7 @@ An implicit conversion exists from a method group ([§11.2](expressions.md#112-e
 The compile-time application of the conversion from a method group `E` to a delegate type `D` is described in the following. Note that the existence of an implicit conversion from `E` to `D` does not guarantee that the compile-time application of the conversion will succeed without error.
 
 - A single method `M` is selected corresponding to a method invocation ([§11.7.8.2](expressions.md#11782-method-invocations)) of the form `E(A)`, with the following modifications:
-  - The argument list `A` is a list of expressions, each classified as a variable and with the type and modifier (`ref` or `out`) of the corresponding parameter in the *formal_parameter_list* of `D` --- excepting parameters of type `dynamic`, where the corresponding expression has the type `object` instead of `dynamic`.
+  - The argument list `A` is a list of expressions, each classified as a variable and with the type and modifier (`ref` or `out`) of the corresponding parameter in the *formal_parameter_list* of `D` — excepting parameters of type `dynamic`, where the corresponding expression has the type `object` instead of `dynamic`.
   - The candidate methods considered are only those methods that are applicable in their normal form and do not omit any optional parameters ([§11.6.4.2](expressions.md#11642-applicable-function-member)). Thus, candidate methods are ignored if they are applicable only in their expanded form, or if one or more of their optional parameters do not have a corresponding parameter in `D`.
 - A conversion is considered to exist if the algorithm of [§11.7.8.2](expressions.md#11782-method-invocations) produces a single best method `M` having the same number of parameters as `D`.
 - Even if the conversion exists, a compile-time error occurs if the selected method `M` is not compatible ([§19.4](delegates.md#194-delegate-compatibility)) with the delegate type `D`.
@@ -804,6 +862,7 @@ The compile-time application of the conversion from a method group `E` to a del
 - The result of the conversion is a value of type `D`, namely a delegate that refers to the selected method and target object.
 
 > *Example*: The following demonstrates method group conversions:
+>
 > ```csharp
 > delegate string D1(object o);
 > delegate object D2(string s);
@@ -824,32 +883,39 @@ The compile-time application of the conversion from a method group `E` to a del
 >     }
 > }
 > ```
+>
 > The assignment to `d1` implicitly converts the method group `F` to a value of type `D1`.
-> 
+>
 > The assignment to `d2` shows how it is possible to create a delegate to a method that has less derived (contravariant) parameter types and a more derived (covariant) return type.
-> 
+>
 > The assignment to `d3` shows how no conversion exists if the method is not applicable.
-> 
+>
 > The assignment to `d4` shows how the method must be applicable in its normal form.
-> 
+>
 > The assignment to `d5` shows how parameter and return types of the delegate and method are allowed to differ only for reference types.
+>
 > *end example*
 
 As with all other implicit and explicit conversions, the cast operator can be used to explicitly perform a particular conversion.
 
 > *Example*: Thus, the example
+>
 > ```csharp
 > object obj = new EventHandler(myDialog.OkClick);
 > ```
+>
 > could instead be written
+>
 > ```csharp
 > object obj = (EventHandler)myDialog.OkClick;
 > ```
+>
 > *end example*
 
 A method group conversion can refer to a generic method, either by explicitly specifying type arguments within `E`, or via type inference ([§11.6.3](expressions.md#1163-type-inference)). If type inference is used, the parameter types of the delegate are used as argument types in the inference process. The return type of the delegate is not used for inference. Whether the type arguments are specified or inferred, they are part of the method group conversion process; these are the type arguments used to invoke the target method when the resulting delegate is invoked.
 
 > *Example*:
+>
 > ```csharp
 > delegate int D(string s, int i);
 > delegate int E();
@@ -868,13 +934,14 @@ A method group conversion can refer to a generic method, either by explicitly sp
 >     }
 > }
 > ```
+>
 > *end example*
 
 Method groups may influence overload resolution, and participate in type inference. See [§11.6](expressions.md#116-function-members) for further details.
 
 The run-time evaluation of a method group conversion proceeds as follows:
 
-- If the method selected at compile-time is an instance method, or it is an extension method which is accessed as an instance method, 
+- If the method selected at compile-time is an instance method, or it is an extension method which is accessed as an instance method,
 the target object of the delegate is determined from the instance expression associated with `E`:
   - The instance expression is evaluated. If this evaluation causes an exception, no further steps are executed.
   - If the instance expression is of a *reference_type*, the value computed by the instance expression becomes the target object. If the selected method is an instance method and the target object is `null`, a `System.NullReferenceException` is thrown and no further steps are executed.

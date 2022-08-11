@@ -1,5 +1,6 @@
 using MarkdownConverter.Spec;
 using System;
+using System.IO;
 using Xunit;
 
 namespace MarkdownConverter.Tests
@@ -9,7 +10,7 @@ namespace MarkdownConverter.Tests
         [Fact]
         public void EmptyListTest()
         {
-            Assert.Throws<ArgumentNullException>(() => MarkdownSpec.ReadFiles(null));
+            Assert.Throws<ArgumentNullException>(() => MarkdownSpec.ReadFiles(null, new Reporter(TextWriter.Null)));
         }
     }
 }

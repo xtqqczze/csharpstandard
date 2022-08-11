@@ -19,7 +19,7 @@ Value types differ from reference types in that variables of the value types dir
 
 > *Note*: When a variable is a ref or out parameter, it does not have its own storage but references the storage of another variable. In this case, the ref or out variable is effectively an alias for another variable and not a distinct variable. *end note*
 
-C#'s type system is unified such that *a value of any type can be treated as an object*. Every type in C# directly or indirectly derives from the `object` class type, and `object` is the ultimate base class of all types. Values of reference types are treated as objects simply by viewing the values as type `object`. Values of value types are treated as objects by performing boxing and unboxing operations ([§8.3.12](types.md#8312-boxing-and-unboxing)).
+C#’s type system is unified such that *a value of any type can be treated as an object*. Every type in C# directly or indirectly derives from the `object` class type, and `object` is the ultimate base class of all types. Values of reference types are treated as objects simply by viewing the values as type `object`. Values of value types are treated as objects by performing boxing and unboxing operations ([§8.3.12](types.md#8312-boxing-and-unboxing)).
 
 For convenience, throughout this specification, some library type names are written without using their full name qualification. Refer to [§C.5](standard-library.md#c5-library-type-abbreviations) for more information.
 
@@ -129,7 +129,7 @@ Array types are described in [§16](arrays.md#16-arrays).
 
 A delegate is a data structure that refers to one or more methods. For instance methods, it also refers to their corresponding object instances.
 
-> *Note*: The closest equivalent of a delegate in C or C++ is a function pointer, but whereas a function pointer can only reference static functions, a delegate can reference both static and instance methods. In the latter case, the delegate stores not only a reference to the method's entry point, but also a reference to the object instance on which to invoke the method. *end note*
+> *Note*: The closest equivalent of a delegate in C or C++ is a function pointer, but whereas a function pointer can only reference static functions, a delegate can reference both static and instance methods. In the latter case, the delegate stores not only a reference to the method’s entry point, but also a reference to the object instance on which to invoke the method. *end note*
 
 Delegate types are described in [§19](delegates.md#19-delegates).
 
@@ -220,8 +220,11 @@ All value types implicitly declare a public parameterless instance constructor c
 Like any other instance constructor, the default constructor of a value type is invoked using the `new` operator.
 
 > *Note*: For efficiency reasons, this requirement is not intended to actually have the implementation generate a constructor call. For value types, the default value expression ([§11.7.19](expressions.md#11719-default-value-expressions)) produces the same result as using the default constructor. *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: In the code below, variables `i`, `j` and `k` are all initialized to zero.
+>
 > ```csharp
 > class A
 > {
@@ -233,6 +236,7 @@ Like any other instance constructor, the default constructor of a value type is 
 >     }
 > }
 > ```
+>
 > *end example*
 
 Because every value type implicitly has a public parameterless instance constructor, it is not possible for a struct type to contain an explicit declaration of a parameterless constructor. A struct type is however permitted to declare parameterized instance constructors ([§15.4.9](structs.md#1549-constructors)).
@@ -264,22 +268,24 @@ C# provides a set of predefined `struct` types called the simple types. The simp
 Because a simple type aliases a struct type, every simple type has members.
 
 > *Example*: `int` has the members declared in `System.Int32` and the members inherited from `System.Object`, and the following statements are permitted:
+>
 > ```csharp
 > int i = int.MaxValue;      // System.Int32.MaxValue constant
 > string s = i.ToString();   // System.Int32.ToString() instance method
 > string t = 123.ToString(); // System.Int32.ToString() instance method
 > ```
+>
 > *end example*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Note*: The simple types differ from other struct types in that they permit certain additional operations:
-> - Most simple types permit values to be created by writing *literals* ([§6.4.5](lexical-structure.md#645-literals)).
-> *Example*:  
-> `123` is a literal of type `int` and `a` is a literal of type `char`.
-> *end example*  
-> C# makes no provision for literals of struct types in general.
-> - When the operands of an expression are all simple type constants, it is possible for the compiler to evaluate the expression at compile-time. Such an expression is known as a *constant_expression* ([§11.20](expressions.md#1120-constant-expressions)). Expressions involving operators defined by other struct types are not considered to be constant expressions.
+>
+> - Most simple types permit values to be created by writing *literals* ([§6.4.5](lexical-structure.md#645-literals)), although C# makes no provision for literals of struct types in general. *Example*: `123` is a literal of type `int` and `'a'` is a literal of type `char`. *end example*
+> - When the operands of an expression are all simple type constants, it is possible for the compiler to evaluate the expression at compile-time. Such an expression is known as a *constant_expression* ([§11.20](expressions.md#1120-constant-expressions)). Expressions involving operators defined by other struct types are not considered to be constant expressions
 > - Through `const` declarations, it is possible to declare constants of the simple types ([§14.4](classes.md#144-constants)). It is not possible to have constants of other struct types, but a similar effect is provided by static readonly fields.
 > - Conversions involving simple types can participate in evaluation of conversion operators defined by other struct types, but a user-defined conversion operator can never participate in evaluation of another user-defined conversion operator ([§10.5.3](conversions.md#1053-evaluation-of-user-defined-conversions)).
+>
 > *end note*.
 
 ### 8.3.6 Integral types
@@ -297,7 +303,7 @@ C# supports nine integral types: `sbyte`, `byte`, `short`, `ushort`, `int`, `uin
 - The `char` type represents unsigned 16-bit integers with values from `0` to `65535`, inclusive. The set of possible values for the `char` type corresponds to the Unicode character set.
   > *Note*: Although `char` has the same representation as `ushort`, not all operations permitted on one type are permitted on the other. *end note*
   
-All signed integral types are represented using two's complement format.
+All signed integral types are represented using two’s complement format.
 
 The *integral_type* unary and binary operators always operate with signed 32-bit precision, unsigned 32-bit precision, signed 64-bit precision, or unsigned 64-bit precision, as detailed in [§11.4.7](expressions.md#1147-numeric-promotions).
 
@@ -340,19 +346,19 @@ The floating-point operators, including the assignment operators, never produce 
 
 Floating-point operations may be performed with higher precision than the result type of the operation. To force a value of a floating-point type to the exact precision of its type, an explicit cast ([§11.8.7](expressions.md#1187-cast-expressions)) can be used.
 
-> *Example*: Some hardware architectures support an "extended" or "long double" floating-point type with greater range and precision than the `double` type, and implicitly perform all floating-point operations using this higher precision type. Only at excessive cost in performance can such hardware architectures be made to perform floating-point operations with *less* precision, and rather than require an implementation to forfeit both performance and precision, C# allows a higher precision type to be used for all floating-point operations. Other than delivering more precise results, this rarely has any measurable effects. However, in expressions of the form `x * y / z`, where the multiplication produces a result that is outside the `double` range, but the subsequent division brings the temporary result back into the `double` range, the fact that the expression is evaluated in a higher range format can cause a finite result to be produced instead of an infinity. *end example*
+> *Example*: Some hardware architectures support an “extended” or “long double” floating-point type with greater range and precision than the `double` type, and implicitly perform all floating-point operations using this higher precision type. Only at excessive cost in performance can such hardware architectures be made to perform floating-point operations with *less* precision, and rather than require an implementation to forfeit both performance and precision, C# allows a higher precision type to be used for all floating-point operations. Other than delivering more precise results, this rarely has any measurable effects. However, in expressions of the form `x * y / z`, where the multiplication produces a result that is outside the `double` range, but the subsequent division brings the temporary result back into the `double` range, the fact that the expression is evaluated in a higher range format can cause a finite result to be produced instead of an infinity. *end example*
 
 ### 8.3.8 The Decimal type
 
 The `decimal` type is a 128-bit data type suitable for financial and monetary calculations. The `decimal` type can represent values including those in the range at least -7.9 × 10⁻²⁸ to 7.9 × 10²⁸, with at least 28-digit precision.
 
-The finite set of values of type `decimal` are of the form (–1)ᵛ × *c* × 10⁻ᵉ, where the sign *v* is 0 or 1, the coefficient *c* is given by 0 ≤ *c* < *Cmax*, and the scale *e* is such that *Emin* ≤ *e* ≤ *Emax*, where *Cmax* is at least 1 × 10²⁸, *Emin* ≤ 0, and *Emax* ≥ 28. The `decimal` type does not necessarily support signed zeros, infinities, or NaN's.
+The finite set of values of type `decimal` are of the form (–1)ᵛ × *c* × 10⁻ᵉ, where the sign *v* is 0 or 1, the coefficient *c* is given by 0 ≤ *c* < *Cmax*, and the scale *e* is such that *Emin* ≤ *e* ≤ *Emax*, where *Cmax* is at least 1 × 10²⁸, *Emin* ≤ 0, and *Emax* ≥ 28. The `decimal` type does not necessarily support signed zeros, infinities, or NaN’s.
 
 A `decimal` is represented as an integer scaled by a power of ten. For `decimal`s with an absolute value less than `1.0m`, the value is exact to at least the 28th decimal place. For `decimal`s with an absolute value greater than or equal to `1.0m`, the value is exact to at least 28 digits. Contrary to the `float` and `double` data types, decimal fractional numbers such as `0.1` can be represented exactly in the decimal representation. In the `float` and `double` representations, such numbers often have non-terminating binary expansions, making those representations more prone to round-off errors.
 
 If either operand of a binary operator is of `decimal` type then standard numeric promotions are applied, as detailed in [§11.4.7](expressions.md#1147-numeric-promotions), and the operation is performed with `double` precision.
 
-The result of an operation on values of type `decimal` is that which would result from calculating an exact result (preserving scale, as defined for each operator) and then rounding to fit the representation. Results are rounded to the nearest representable value, and, when a result is equally close to two representable values, to the value that has an even number in the least significant digit position (this is known as "banker's rounding"). That is, results are exact to at least the 28th decimal place. Note that rounding may produce a zero value from a non-zero value.
+The result of an operation on values of type `decimal` is that which would result from calculating an exact result (preserving scale, as defined for each operator) and then rounding to fit the representation. Results are rounded to the nearest representable value, and, when a result is equally close to two representable values, to the value that has an even number in the least significant digit position (this is known as “banker’s rounding”). That is, results are exact to at least the 28th decimal place. Note that rounding may produce a zero value from a non-zero value.
 
 If a `decimal` arithmetic operation produces a result whose magnitude is too large for the `decimal` format, a `System.OverflowException` is thrown.
 
@@ -407,13 +413,14 @@ Boxing is described in more detail in [§10.2.9](conversions.md#1029-boxing-conv
 
 ### 8.4.1 General
 
-A generic type declaration, by itself, denotes an ***unbound generic type*** that is used as a "blueprint" to form many different types, by way of applying ***type arguments***. The type arguments are written within angle brackets (`<` and `>`) immediately following the name of the generic type. A type that includes at least one type argument is called a ***constructed type***. A constructed type can be used in most places in the language in which a type name can appear. An unbound generic type can only be used within a *typeof_expression* ([§11.7.16](expressions.md#11716-the-typeof-operator)).
+A generic type declaration, by itself, denotes an ***unbound generic type*** that is used as a “blueprint” to form many different types, by way of applying ***type arguments***. The type arguments are written within angle brackets (`<` and `>`) immediately following the name of the generic type. A type that includes at least one type argument is called a ***constructed type***. A constructed type can be used in most places in the language in which a type name can appear. An unbound generic type can only be used within a *typeof_expression* ([§11.7.16](expressions.md#11716-the-typeof-operator)).
 
 Constructed types can also be used in expressions as simple names ([§11.7.4](expressions.md#1174-simple-names)) or when accessing a member ([§11.7.6](expressions.md#1176-member-access)).
 
 When a *namespace_or_type_name* is evaluated, only generic types with the correct number of type parameters are considered. Thus, it is possible to use the same identifier to identify different types, as long as the types have different numbers of type parameters. This is useful when mixing generic and non-generic classes in the same program.
 
 > *Example*:
+>
 > ```csharp
 > namespace Widgets
 > {
@@ -427,16 +434,18 @@ When a *namespace_or_type_name* is evaluated, only generic types with the correc
 >
 >     class X
 >     {
->         Queue q1; // Non-generic Widgets.Queue\
->         Queue<int> q2; // Generic Widgets.Queue\
+>         Queue q1;      // Non-generic Widgets.Queue
+>         Queue<int> q2; // Generic Widgets.Queue
 >     }
 > }
 > ```
+>
 > *end example*
 
-The detailed rules for name lookup in the *namespace_or_type_name* productions is described in [§7.8](basic-concepts.md#78-namespace-and-type-names). The resolution of ambiguities in these productions is described in [§6.2.5](lexical-structure.md#625-grammar-ambiguities). A *type_name* might identify a constructed type even though it doesn't specify type parameters directly. This can occur where a type is nested within a generic `class` declaration, and the instance type of the containing declaration is implicitly used for name lookup ([§14.3.9.7](classes.md#14397-nested-types-in-generic-classes)).
+The detailed rules for name lookup in the *namespace_or_type_name* productions is described in [§7.8](basic-concepts.md#78-namespace-and-type-names). The resolution of ambiguities in these productions is described in [§6.2.5](lexical-structure.md#625-grammar-ambiguities). A *type_name* might identify a constructed type even though it doesn’t specify type parameters directly. This can occur where a type is nested within a generic `class` declaration, and the instance type of the containing declaration is implicitly used for name lookup ([§14.3.9.7](classes.md#14397-nested-types-in-generic-classes)).
 
 > *Example*:
+>
 > ```csharp
 > class Outer<T>
 > {
@@ -445,6 +454,7 @@ The detailed rules for name lookup in the *namespace_or_type_name* productions i
 >     public Inner i; // Type of i is Outer<T>.Inner
 > }
 > ```
+>
 > *end example*
 
 A non-enum constructed type shall not be used as an *unmanaged_type* ([§8.8](types.md#88-unmanaged-types)).
@@ -503,7 +513,7 @@ Whenever a constructed type or generic method is referenced, the supplied type a
   > *Note*: `System.ValueType` and `System.Enum` are reference types that satisfy this constraint. *end note*
   - `A` is a type parameter that is known to be a reference type ([§8.2](types.md#82-reference-types)).
 - If the constraint is the value type constraint (`struct`), the type `A` shall satisfy one of the following:
-  - `A` is a `struct` type or `enum` type, but not a nullable value type. 
+  - `A` is a `struct` type or `enum` type, but not a nullable value type.
   > *Note*: `System.ValueType` and `System.Enum` are reference types that do not satisfy this constraint. *end note*
   - `A` is a type parameter having the value type constraint ([§14.2.5](classes.md#1425-type-parameter-constraints)).
 - If the constraint is the constructor constraint `new()`, the type `A` shall not be `abstract` and shall have a public parameterless constructor. This is satisfied if one of the following is true:
@@ -513,16 +523,18 @@ Whenever a constructed type or generic method is referenced, the supplied type a
   - `A` is a `class` that is not abstract and contains an explicitly declared public constructor with no parameters.
   - `A` is not `abstract` and has a default constructor ([§14.11.5](classes.md#14115-default-constructors)).
 
-A compile-time error occurs if one or more of a type parameter's constraints are not satisfied by the given type arguments.
+A compile-time error occurs if one or more of a type parameter’s constraints are not satisfied by the given type arguments.
 
 Since type parameters are not inherited, constraints are never inherited either.
 
 > *Example*: In the following, `D` needs to specify the constraint on its type parameter `T` so that `T` satisfies the constraint imposed by the base `class` `B<T>`. In contrast, `class` `E` need not specify a constraint, because `List<T>` implements `IEnumerable` for any `T`.
+>
 > ```csharp
 > class B<T> where T: IEnumerable {...}
 > class D<T> : B<T> where T: IEnumerable {...}
 > class E<T> : B<List<T>> {...}
 > ```
+>
 > *end example*
 
 ## 8.5 Type parameters
@@ -546,7 +558,9 @@ Since a type parameter can be instantiated with many different type arguments, t
 > - A `new` expression ([§11.7.15.2](expressions.md#117152-object-creation-expressions)) can only be used with a type parameter if the type parameter is constrained by a *constructor_constraint* or the value type constraint ([§14.2.5](classes.md#1425-type-parameter-constraints)).
 > - A type parameter cannot be used anywhere within an attribute.
 > - A type parameter cannot be used in a member access ([§11.7.6](expressions.md#1176-member-access)) or type name ([§7.8](basic-concepts.md#78-namespace-and-type-names)) to identify a static member or a nested type.
-> - A type parameter cannot be used as an *unmanaged_type* ([§8.8](types.md#88-unmanaged-types)). *end note*
+> - A type parameter cannot be used as an *unmanaged_type* ([§8.8](types.md#88-unmanaged-types)).
+>
+> *end note*
 
 As a type, type parameters are purely a compile-time construct. At run-time, each type parameter is bound to a run-time type that was specified by supplying a type argument to the generic type declaration. Thus, the type of a variable declared with a type parameter will, at run-time, be a closed constructed type [§8.4.3](types.md#843-open-and-closed-types). The run-time execution of all statements and expressions involving type parameters uses the type that was supplied as the type argument for that parameter.
 
@@ -557,11 +571,15 @@ As a type, type parameters are purely a compile-time construct. At run-time, eac
 If a conversion exists from a lambda expression to a delegate type `D`, a conversion also exists to the expression tree type `Expression<TDelegate>`. Whereas the conversion of a lambda expression to a delegate type generates a delegate that references executable code for the lambda expression, conversion to an expression tree type creates an expression tree representation of the lambda expression. More details of this conversion are provided in [§10.7.3](conversions.md#1073-evaluation-of-lambda-expression-conversions-to-expression-tree-types).
 
 > *Example*: The following program represents a lambda expression both as executable code and as an expression tree. Because a conversion exists to `Func<int,int>`, a conversion also exists to `Expression<Func<int,int>>`:
+>
 > ```csharp
 > Func<int,int> del = x => x + 1;             // Code
 > Expression<Func<int,int>> exp = x => x + 1; // Data
 > ```
-> Following these assignments, the delegate `del` references a method that returns `x + 1`, and the expression tree exp references a data structure that describes the expression `x => x + 1`. *end example*
+>
+> Following these assignments, the delegate `del` references a method that returns `x + 1`, and the expression tree exp references a data structure that describes the expression `x => x + 1`.
+>
+> *end example*
 
 `Expression<TDelegate>` provides an instance method `Compile` which produces a delegate of type `TDelegate`:
 
@@ -596,15 +614,16 @@ The type `dynamic` uses dynamic binding, as described in detail in [§11.3.2](ex
 - Operations on expressions of type `dynamic` can be dynamically bound ([§11.3.3](expressions.md#1133-dynamic-binding)).
 - Type inference ([§11.6.3](expressions.md#1163-type-inference)) will prefer `dynamic` over `object` if both are candidates.
 - `dynamic` cannot be used as
-    - the type in an *object_creation_expression* ([§11.7.15.2](expressions.md#117152-object-creation-expressions))
-    - a *predefined_type* in a *member_access* ([§11.7.6.1](expressions.md#11761-general))
-    - the operand of the `typeof` operator
-    - an attribute argument
-    - a constraint
-    - an extension method type
-    - any part of a type argument within *struct_interfaces* ([§15.2.4](structs.md#1524-struct-interfaces)) or *interface_type_list* ([§14.2.4.1](classes.md#14241-general)).
+  - the type in an *object_creation_expression* ([§11.7.15.2](expressions.md#117152-object-creation-expressions))
+  - a *predefined_type* in a *member_access* ([§11.7.6.1](expressions.md#11761-general))
+  - the operand of the `typeof` operator
+  - an attribute argument
+  - a constraint
+  - an extension method type
+  - any part of a type argument within *struct_interfaces* ([§15.2.4](structs.md#1524-struct-interfaces)) or *interface_type_list* ([§14.2.4.1](classes.md#14241-general)).
 
 Because of this equivalence, the following holds:
+
 - There is an implicit identity conversion between `object` and `dynamic`, and between constructed types that are the same when replacing `dynamic` with `object`.
 - Implicit and explicit conversions to and from `object` also apply to and from `dynamic`.
 - Signatures that are the same when replacing `dynamic` with `object` are considered the same signature.
@@ -620,9 +639,9 @@ unmanaged_type
     ;
 ```
 
-An *unmanaged_type* is any type that isn't a *reference_type*, a *type_parameter*, or a constructed type, and contains no fields whose type is not an *unmanaged_type*. In other words, an *unmanaged_type* is one of the following:
- - `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `char`, `float`, `double`, `decimal`, or `bool`.
- - Any *enum_type*.
- - Any user-defined *struct_type* that is not a constructed type and contains fields of *unmanaged_type*s only.
- - In unsafe code ([§22.2](unsafe-code.md#222-unsafe-contexts)), any *pointer_type* ([§22.3](unsafe-code.md#223-pointer-types)).
+An *unmanaged_type* is any type that isn’t a *reference_type*, a *type_parameter*, or a constructed type, and contains no fields whose type is not an *unmanaged_type*. In other words, an *unmanaged_type* is one of the following:
 
+- `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `char`, `float`, `double`, `decimal`, or `bool`.
+- Any *enum_type*.
+- Any user-defined *struct_type* that is not a constructed type and contains fields of *unmanaged_type*s only.
+- In unsafe code ([§22.2](unsafe-code.md#222-unsafe-contexts)), any *pointer_type* ([§22.3](unsafe-code.md#223-pointer-types)).

@@ -10,16 +10,17 @@ The standard library is intended to be the minimum set of types and members requ
 
 It is expected that a conforming C# implementation will supply a significantly more extensive library that enables useful programs to be written. For example, a conforming implementation might extend this library by
 
- - Adding namespaces.
- - Adding types.
- - Adding members to non-interface types.
- - Adding intervening base classes or interfaces.
- - Having struct and class types implement additional interfaces.
- - Adding attributes (other than the `ConditionalAttribute`) to existing types and members.
+- Adding namespaces.
+- Adding types.
+- Adding members to non-interface types.
+- Adding intervening base classes or interfaces.
+- Having struct and class types implement additional interfaces.
+- Adding attributes (other than the `ConditionalAttribute`) to existing types and members.
 
 **End of informative text.**
 
 ## C.2 Standard Library Types defined in ISO/IEC 23271
+
 ```csharp
 namespace System
 {
@@ -50,10 +51,12 @@ namespace System
     {
         public ArrayTypeMismatchException();
         public ArrayTypeMismatchException(string message);
-        public ArrayTypeMismatchException(string message, Exception innerException);
+        public ArrayTypeMismatchException(string message,
+            Exception innerException);
     }
 
-    [AttributeUsageAttribute(AttributeTargets.All, Inherited = true, AllowMultiple = false)]
+    [AttributeUsageAttribute(AttributeTargets.All, Inherited = true,
+        AllowMultiple = false)]
     public abstract class Attribute
     {
         protected Attribute();
@@ -130,7 +133,8 @@ namespace System
     {
         public IndexOutOfRangeException();
         public IndexOutOfRangeException(string message);
-        public IndexOutOfRangeException(string message, Exception innerException);
+        public IndexOutOfRangeException(string message,
+            Exception innerException);
     }
 
     public struct Int16 { }
@@ -149,7 +153,8 @@ namespace System
     {
         public InvalidOperationException();
         public InvalidOperationException(string message);
-        public InvalidOperationException(string message, Exception innerException);
+        public InvalidOperationException(string message,
+            Exception innerException);
     }
 
     public class NotSupportedException : Exception
@@ -231,7 +236,8 @@ namespace System
 
     public sealed class TypeInitializationException : Exception
     {
-        public TypeInitializationException(string fullTypeName, Exception innerException);
+        public TypeInitializationException(string fullTypeName,
+            Exception innerException);
     }
 
     public struct UInt16 { }
@@ -326,7 +332,8 @@ namespace System.Collections.Generic
 
 namespace System.Diagnostics
 {
-    [AttributeUsageAttribute(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
+    [AttributeUsageAttribute(AttributeTargets.Method | AttributeTargets.Class,
+                             AllowMultiple = true)]
     public sealed class ConditionalAttribute : Attribute
     {
         public ConditionalAttribute(string conditionString);
@@ -401,7 +408,8 @@ namespace System.Runtime.CompilerServices
 
     public static class FormattableStringFactory
     {
-        public static FormattableString Create(string format, params object[] arguments);
+        public static FormattableString Create(string format,
+            params object[] arguments);
     }
 
     public interface ICriticalNotifyCompletion : INotifyCompletion
@@ -451,11 +459,12 @@ it is converted to a string. Either standard or custom formats can be used. A
 standard format takes the form *Axx*, where *A* is a single
 alphabetic character called the *format specifier*, and *xx* is an integer between zero and 99 inclusive, called the *precision specifier*. The format specifier controls the type
 of formatting applied to the value being represented as a string. The
-*precision specifier* controls the number 
-of significant digits or decimal places in the string, if applicable. 
+*precision specifier* controls the number of significant digits or decimal places in the string, if applicable.
 
 > *Note:* For the list of standard format specifiers, see the table below. Note that a given data type, such as `System.Int32`, might not support one or more of the standard format specifiers. *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Note:* When a format includes symbols that vary by culture, such as the currencysymbol included by the ‘C’ and ‘c’ formats, a formatting object supplies the actual characters used in the string representation. A method might include a parameter to pass a `System.IFormatProvider` object that supplies a formatting object, or the method might use the default formatting object, which contains the symbol definitions for the current culture. The current culture typically uses the same set of symbols used system-wide by default. In the Base Class Library, the formatting object for system-supplied numeric types is a `System.Globalization.NumberFormatInfo` instance. For `System.DateTime` instances, a `System.Globalization.DateTimeFormatInfo` is used. *end note*
 
 The following table describes the standard format specifiers and associated formatting
@@ -515,7 +524,7 @@ property.</p>
 is omitted, six decimal places are included in the
 string.</p>
 <p>The exponent
-(<em>+/-xxx</em>) 
+(<em>+/-xxx</em>)
 consists of either a positive or negative number symbol followed by a
 minimum of three digits (<em>xxx</em>). The exponent is
 left-padded with zeros, if necessary. The case of the format specifier
@@ -529,7 +538,7 @@ property.</p></td>
 <p><code>f</code></p></td>
 <td><p><strong>Fixed-Point Format:</strong> Used for strings in the following
 form:</p>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"[-]<em>m.dd...d</em>"</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[-]<em>m.dd...d</em></p>
 <p>At least one non-zero decimal digit (<em>m</em>) precedes the decimal separator (‘.’), which is
 supplied by the <code>System.Globalization.NumberFormatInfo.NumberDecimalSeparator</code>
 property.</p>
@@ -539,8 +548,7 @@ supplied by the <code>System.Globalization.NumberFormatInfo.NegativeSign</code>
 property.</p>
 <p>The precision specifier determines the number of decimal places
 (<em>dd...d</em>) in the string. If the precision specifier is omitted,
-<code>System.Globalization.NumberFormatInfo.NumberDecimalDigits</code> determines the number of decimal 
-places in the string. Results are rounded to the nearest representable
+<code>System.Globalization.NumberFormatInfo.NumberDecimalDigits</code> determines the number of decimal places in the string. Results are rounded to the nearest representable
 value when necessary.</p></td>
 </tr>
 <tr>
@@ -645,8 +653,7 @@ letters are used in the hexadecimal representation.</td>
 </table>
 
 If the numerical value is a `System.Single` or `System.Double` with a value of `NaN`,
-`PositiveInfinity`, or `NegativeInfinity`, the format 
-specifier is ignored, and one of the following is returned: `System.Globalization.NumberFormatInfo.NaNSymbol`, `System.Globalization.NumberFormatInfo.PositiveInfinitySymbol`, or `System.Globalization.NumberFormatInfo.NegativeInfinitySymbol`.
+`PositiveInfinity`, or `NegativeInfinity`, the format specifier is ignored, and one of the following is returned: `System.Globalization.NumberFormatInfo.NaNSymbol`, `System.Globalization.NumberFormatInfo.PositiveInfinitySymbol`, or `System.Globalization.NumberFormatInfo.NegativeInfinitySymbol`.
 
 A custom format is any string specified as a format that
 is not in the form of a standard format string (Axx) described above. The
@@ -717,7 +724,7 @@ divided by 1000<sup>X</sup> before it is formatted. For example, the format stri
 will divide a value by one million. Note that the presence of the ‘,’
 character to indicate scaling does not insert group separators in the
 output string. Thus, to scale a number by 1 million and insert group
-separators, use a custom format similar to "#,##0,,".</p></td>
+separators, use a custom format similar to ‘#,##0,,’.</p></td>
 </tr>
 <tr>
 <td><code>%</code> (percent)</td>
@@ -753,7 +760,7 @@ property.</td>
 <td><strong>Escape character:</strong> In some languages, such as C#, the
 backslash character causes the next character in the custom format to be interpreted
 as an escape sequence. It is used with C language
-formatting sequences, such as "\n" (newline). In some languages, the escape character
+formatting sequences, such as ‘\n’ (newline). In some languages, the escape character
 itself is required to be preceded by an escape character
 when used as a literal. Otherwise, the compiler interprets the character as
 an escape sequence. This escape character is not required to be
@@ -803,7 +810,7 @@ becomes zero after rounding according to the format in the second section,
 then the resulting zero is formatted according to the first section. Negative
 values do not include a negative sign to allow full control over
 representations of negative values. For example, a negative can be represented
-in parenthesis using a custom format similar to "####.####;(####.####)".
+in parenthesis using a custom format similar to ‘####.####;(####.####)’.
 
 - **Three sections**:
 The first section applies to positive values, the second section

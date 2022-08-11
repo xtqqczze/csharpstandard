@@ -4,7 +4,7 @@
 
 Much of the C# language enables the programmer to specify declarative information about the entities defined in the program. For example, the accessibility of a method in a class is specified by decorating it with the *method_modifier*s `public`, `protected`, `internal`, and `private`.
 
-C# enables programmers to invent new kinds of declarative information, called ***attributes***. Programmers can then attach attributes to various program entities, and retrieve attribute information in a run-time environment. 
+C# enables programmers to invent new kinds of declarative information, called ***attributes***. Programmers can then attach attributes to various program entities, and retrieve attribute information in a run-time environment.
 
 > *Note*: For instance, a framework might define a `HelpAttribute` attribute that can be placed on certain program elements (such as classes and methods) to provide a mapping from those program elements to their documentation. *end note*
 
@@ -19,12 +19,14 @@ A class that derives from the abstract class `System.Attribute`, whether directl
 A generic class declaration shall not use `System.Attribute` as a direct or indirect base class.
 
 > *Example*:
+>
 > ```csharp
 > using System;
 >
 > public class B : Attribute {}
 > public class C<T> : B {} // Error – generic cannot be an attribute
 > ```
+>
 > *end example*
 
 ### 21.2.2 Attribute usage
@@ -34,6 +36,7 @@ The attribute `AttributeUsage` ([§21.5.2](attributes.md#2152-the-attributeusage
 `AttributeUsage` has a positional parameter ([§21.2.3](attributes.md#2123-positional-and-named-parameters)) that enables an attribute class to specify the kinds of program entities on which it can be used.
 
 > *Example*: The example
+>
 > ```csharp
 > using System;
 >
@@ -43,21 +46,27 @@ The attribute `AttributeUsage` ([§21.5.2](attributes.md#2152-the-attributeusage
 >     ... 
 > }
 > ```
+>
 > defines an attribute class named `SimpleAttribute` that can be placed on *class_declaration*s and *interface_declaration*s only. The example
+>
 > ```csharp
 > [Simple] class Class1 {...}
 > [Simple] interface Interface1 {...}
 > ```
+>
 > shows several uses of the `Simple` attribute. Although this attribute is defined with the name `SimpleAttribute`, when this attribute is used, the `Attribute` suffix may be omitted, resulting in the short name `Simple`. Thus, the example above is semantically equivalent to the following
+>
 > ```csharp
 > [SimpleAttribute] class Class1 {...}
 > [SimpleAttribute] interface Interface1 {...}
 > ```
+>
 > *end example*
 
 `AttributeUsage` has a named parameter ([§21.2.3](attributes.md#2123-positional-and-named-parameters)), called `AllowMultiple`, which indicates whether the attribute can be specified more than once for a given entity. If `AllowMultiple` for an attribute class is true, then that attribute class is a ***multi-use attribute class***, and can be specified more than once on an entity. If `AllowMultiple` for an attribute class is false or it is unspecified, then that attribute class is a ***single-use attribute class***, and can be specified at most once on an entity.
 
 > *Example*: The example
+>
 > ```csharp
 > using System;
 > [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
@@ -74,8 +83,9 @@ The attribute `AttributeUsage` ([§21.5.2](attributes.md#2152-the-attributeusage
 >     }
 > }
 > ```
+>
 > defines a multi-use attribute class named `AuthorAttribute`. The example
-> 
+>
 > ```csharp
 > [Author("Brian Kernighan"), Author("Dennis Ritchie")]
 > class Class1 
@@ -83,7 +93,10 @@ The attribute `AttributeUsage` ([§21.5.2](attributes.md#2152-the-attributeusage
 >     ...
 > }
 > ```
-> shows a class declaration with two uses of the `Author` attribute. *end example*
+>
+> shows a class declaration with two uses of the `Author` attribute.
+>
+> *end example*
 
 `AttributeUsage` has another named parameter ([§21.2.3](attributes.md#2123-positional-and-named-parameters)), called `Inherited`, which indicates whether the attribute, when specified on a base class, is also inherited by classes that derive from that base class. If `Inherited` for an attribute class is true, then that attribute is inherited. If `Inherited` for an attribute class is false then that attribute is not inherited. If it is unspecified, its default value is true.
 
@@ -94,6 +107,7 @@ using System;
 >
 class X : Attribute { ... }
 ```
+
 is equivalent to the following:
 
 ```csharp
@@ -108,9 +122,10 @@ class X : Attribute { ... }
 
 ### 21.2.3 Positional and named parameters
 
-Attribute classes can have ***positional parameters*** and ***named parameters***. Each public instance constructor for an attribute class defines a valid sequence of positional parameters for that attribute class. Each non-static public read-write field and property for an attribute class defines a named parameter for the attribute class. For a property to define a named parameter, that property shall have both a public get accessor and a public set accessor.   
+Attribute classes can have ***positional parameters*** and ***named parameters***. Each public instance constructor for an attribute class defines a valid sequence of positional parameters for that attribute class. Each non-static public read-write field and property for an attribute class defines a named parameter for the attribute class. For a property to define a named parameter, that property shall have both a public get accessor and a public set accessor.
 
 > *Example*: The example
+>
 > ```csharp
 > using System;
 > [AttributeUsage(AttributeTargets.Class)]
@@ -131,9 +146,11 @@ Attribute classes can have ***positional parameters*** and ***named parameters**
 >     public string Url { get; }
 > }
 > ```
+>
 > defines an attribute class named `HelpAttribute` that has one positional parameter, `url`, and one named parameter, `Topic`. Although it is non-static and public, the property `Url` does not define a named parameter, since it is not read-write.
-> 
+>
 > This attribute class might be used as follows:
+>
 > ```csharp
 > [Help("http://www.mycompany.com/.../Class1.htm")]
 > class Class1
@@ -145,6 +162,7 @@ Attribute classes can have ***positional parameters*** and ***named parameters**
 > {
 > }
 > ```
+>
 > *end example*
 
 ### 21.2.4 Attribute parameter types
@@ -293,6 +311,7 @@ Certain contexts permit the specification of an attribute on more than one targe
 In all other contexts, inclusion of an *attribute_target_specifier* is permitted but unnecessary.
 
 > *Example*: a class declaration may either include or omit the specifier `type`:
+>
 > ```csharp
 > [type: Author("Brian Kernighan")]
 > class Class1 {}
@@ -300,7 +319,8 @@ In all other contexts, inclusion of an *attribute_target_specifier* is permitted
 > [Author("Dennis Ritchie")]
 > class Class2 {}
 > ```
-> *end example*.]
+>
+> *end example*.
 
 An implementation can accept other *attribute_target*s, the purposes of which are implementation defined. An implementation that does not recognize such an *attribute_target* shall issue a warning and ignore the containing *attribute_section*.
 
@@ -309,10 +329,12 @@ By convention, attribute classes are named with a suffix of `Attribute`. An *att
 - If the right-most identifier of the *attribute_name* is a verbatim identifier ([§6.4.3](lexical-structure.md#643-identifiers)), then the *attribute_name* is resolved as a *type_name* ([§7.8](basic-concepts.md#78-namespace-and-type-names)). If the result is not a type derived from `System.Attribute`, a compile-time error occurs.
 - Otherwise,
   - The *attribute_name* is resolved as a *type_name* ([§7.8](basic-concepts.md#78-namespace-and-type-names)) except any errors are suppressed. If this resolution is successful and results in a type derived from `System.Attribute` then the type is the result of this step.
-  - The characters `Attribute` are appended to the right-most identifier in the *attribute_name* and the resulting string of tokens is resolved as a *type_name* ([§7.8](basic-concepts.md#78-namespace-and-type-names)) except any errors are suppressed. If this resolution is successful and results in a type derived from `System.Attribute` then the type is the result of this step.      
+  - The characters `Attribute` are appended to the right-most identifier in the *attribute_name* and the resulting string of tokens is resolved as a *type_name* ([§7.8](basic-concepts.md#78-namespace-and-type-names)) except any errors are suppressed. If this resolution is successful and results in a type derived from `System.Attribute` then the type is the result of this step.
+
 If exactly one of the two steps above results in a type derived from `System.Attribute`, then that type is the result of the *attribute_name*. Otherwise a compile-time error occurs.
 
-*Example*: If an attribute class is found both with and without this suffix, an ambiguity is present, and a compile-time error results. If the *attribute_name* is spelled such that its right-most *identifier* is a verbatim identifier ([§6.4.3](lexical-structure.md#643-identifiers)), then only an attribute without a suffix is matched, thus enabling such an ambiguity to be resolved. The example
+> *Example*: If an attribute class is found both with and without this suffix, an ambiguity is present, and a compile-time error results. If the *attribute_name* is spelled such that its right-most *identifier* is a verbatim identifier ([§6.4.3](lexical-structure.md#643-identifiers)), then only an attribute without a suffix is matched, thus enabling such an ambiguity to be resolved. The example
+>
 > ```csharp
 > using System;
 > [AttributeUsage(AttributeTargets.All)]
@@ -335,7 +357,9 @@ If exactly one of the two steps above results in a type derived from `System.Att
 > [@ExampleAttribute]     // Refers to ExampleAttribute
 > class Class4 {}
 > ```
+>
 > shows two attribute classes named `Example` and `ExampleAttribute`. The attribute `[Example]` is ambiguous, since it could refer to either `Example` or `ExampleAttribute`. Using a verbatim identifier allows the exact intent to be specified in such rare cases. The attribute `[ExampleAttribute]` is not ambiguous (although it would be if there was an attribute class named `ExampleAttributeAttribute`!). If the declaration for class `Example` is removed, then both attributes refer to the attribute class named `ExampleAttribute`, as follows:
+>
 > ```csharp
 > using System;
 >
@@ -352,11 +376,13 @@ If exactly one of the two steps above results in a type derived from `System.Att
 > [@Example]           // Error: no attribute named “Example”
 > class Class3 {}
 > ```
+>
 > *end example*
 
 It is a compile-time error to use a single-use attribute class more than once on the same entity.
 
 > *Example*: The example
+>
 > ```csharp
 > using System;
 >
@@ -374,7 +400,10 @@ It is a compile-time error to use a single-use attribute class more than once on
 > [HelpString("Another description of Class1")]
 > public class Class1 {}
 > ```
-> results in a compile-time error because it attempts to use `HelpString`, which is a single-use attribute class, more than once on the declaration of `Class1`. *end example*
+>
+> results in a compile-time error because it attempts to use `HelpString`, which is a single-use attribute class, more than once on the declaration of `Class1`.
+>
+> *end example*
 
 An expression `E` is an *attribute_argument_expression* if all of the following statements are true:
 
@@ -385,6 +414,7 @@ An expression `E` is an *attribute_argument_expression* if all of the following 
   - A single-dimensional array of *attribute_argument_expression*s.
 
 > *Example*:
+>
 > ```csharp
 > using System;
 > [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field)]
@@ -414,11 +444,13 @@ An expression `E` is an *attribute_argument_expression* if all of the following 
 >     int x4;
 > }
 > ```
+>
 > *end example*
 
 The attributes of a type declared in multiple parts are determined by combining, in an unspecified order, the attributes of each of its parts. If the same attribute is placed on multiple parts, it is equivalent to specifying that attribute multiple times on the type.
 
 > *Example*: The two parts:
+>
 > ```csharp
 > [Attr1, Attr2("hello")]
 > partial class A {}
@@ -426,11 +458,14 @@ The attributes of a type declared in multiple parts are determined by combining,
 > [Attr3, Attr2("goodbye")]
 > partial class A {}
 > ```
+>
 > are equivalent to the following single declaration:
+>
 > ```csharp
 > [Attr1, Attr2("hello"), Attr3, Attr2("goodbye")]
 > class A {}
 > ```
+>
 > *end example*
 
 Attributes on type parameters combine in the same way.
@@ -445,16 +480,16 @@ Retrieval of an attribute instance involves both compile-time and run-time proce
 
 ### 21.4.2 Compilation of an attribute
 
-The compilation of an *attribute* with attribute class `T`, *positional_argument_list * `P`, *named_argument_list* `N`, and specified on a program entity `E` is compiled into an assembly `A` via the following steps:
+The compilation of an *attribute* with attribute class `T`, *positional_argument_list* `P`, *named_argument_list* `N`, and specified on a program entity `E` is compiled into an assembly `A` via the following steps:
 
 - Follow the compile-time processing steps for compiling an *object_creation_expression* of the form new `T(P)`. These steps either result in a compile-time error, or determine an instance constructor `C` on `T` that can be invoked at run-time.
 - If `C` does not have public accessibility, then a compile-time error occurs.
 - For each *named_argument* `Arg` in `N`:
   - Let `Name` be the *identifier* of the *named_argument* `Arg`.
   - `Name` shall identify a non-static read-write public field or property on `T`. If `T` has no such field or property, then a compile-time error occurs.
-- If any of the values within *positional_argument_list* `P` or one of the values within *named_argument_list* `N` is of type `System.String` and the value is not well-formed as defined by the Unicode Standard, it is implementation-defined whether the value compiled is equal to the run-time value retrieved ([§21.4.3](attributes.md#2143-run-time-retrieval-of-an-attribute-instance)). 
-  > *Note*: As an example, a string which contains a high surrogate UTF-16 code unit which isn't immediately followed by a low surrogate code unit is not well-formed. *end note*
-- Store the following information (for run-time instantiation of the attribute) in the assembly output by the compiler as a result of compiling the program containing the attribute: the attribute class `T`, the instance constructor `C` on `T`, the *positional_argument_list * `P`, the *named_argument_list* `N`, and the associated program entity `E`, with the values resolved completely at compile-time.
+- If any of the values within *positional_argument_list* `P` or one of the values within *named_argument_list* `N` is of type `System.String` and the value is not well-formed as defined by the Unicode Standard, it is implementation-defined whether the value compiled is equal to the run-time value retrieved ([§21.4.3](attributes.md#2143-run-time-retrieval-of-an-attribute-instance)).
+  > *Note*: As an example, a string which contains a high surrogate UTF-16 code unit which isn’t immediately followed by a low surrogate code unit is not well-formed. *end note*
+- Store the following information (for run-time instantiation of the attribute) in the assembly output by the compiler as a result of compiling the program containing the attribute: the attribute class `T`, the instance constructor `C` on `T`, the *positional_argument_list* `P`, the *named_argument_list* `N`, and the associated program entity `E`, with the values resolved completely at compile-time.
 
 ### 21.4.3 Run-time retrieval of an attribute instance
 
@@ -466,11 +501,14 @@ The attribute instance represented by `T`, `C`, `P`, and `N`, and associated wi
   - Let `Value` be the result of evaluating the *attribute_argument_expression* of `Arg`.
   - If `Name` identifies a field on `O`, then set this field to `Value`.
   - Otherwise, Name identifies a property on `O`. Set this property to Value.
-  - The result is `O`, an instance of the attribute class `T` that has been initialized with the *positional_argument_list * `P` and the *named_argument_list* `N`.
+  - The result is `O`, an instance of the attribute class `T` that has been initialized with the *positional_argument_list* `P` and the *named_argument_list* `N`.
 
 > *Note*: The format for storing `T`, `C`, `P`, `N` (and associating it with `E`) in `A` and the mechanism to specify `E` and retrieve `T`, `C`, `P`, `N` from `A` (and hence how an attribute instance is obtained at runtime) is beyond the scope of this standard. *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: In an implementation of the CLI, the `Help` attribute instances in the assembly created by compiling the example program in [§21.2.3](attributes.md#2123-positional-and-named-parameters) can be retrieved with the following program:
+>
 > ```csharp
 > using System;
 > using System.Reflection;
@@ -494,6 +532,7 @@ The attribute instance represented by `T`, `C`, `P`, and `N`, and associated wi
 >     }
 > }
 > ```
+>
 > *end example*
 
 ## 21.5 Reserved attributes
@@ -505,9 +544,7 @@ A small number of attributes affect the language in some way. These attributes i
 - `System.AttributeUsageAttribute` ([§21.5.2](attributes.md#2152-the-attributeusage-attribute)), which is used to describe the ways in which an attribute class can be used.
 - `System.Diagnostics.ConditionalAttribute` ([§21.5.3](attributes.md#2153-the-conditional-attribute)), is a multi-use attribute class which is used to define conditional methods and conditional attribute classes. This attribute indicates a condition by testing a conditional compilation symbol.
 - `System.ObsoleteAttribute` ([§21.5.4](attributes.md#2154-the-obsolete-attribute)), which is used to mark a member as obsolete.
-- `System.Runtime.CompilerServices.CallerLineNumberAttribute` ([§21.5.5.2](attributes.md#21552-the-callerlinenumber-attribute)), 
-    `System.Runtime.CompilerServices.CallerFilePathAttribute` ([§21.5.5.3](attributes.md#21553-the-callerfilepath-attribute)), and 
-    `System.Runtime.CompilerServices.CallerMemberNameAttribute` ([§21.5.5.4](attributes.md#21554-the-callermembername-attribute)), which are used to supply information about the calling context to optional parameters.
+- `System.Runtime.CompilerServices.CallerLineNumberAttribute` ([§21.5.5.2](attributes.md#21552-the-callerlinenumber-attribute)), `System.Runtime.CompilerServices.CallerFilePathAttribute` ([§21.5.5.3](attributes.md#21553-the-callerfilepath-attribute)), and `System.Runtime.CompilerServices.CallerMemberNameAttribute` ([§21.5.5.4](attributes.md#21554-the-callermembername-attribute)), which are used to supply information about the calling context to optional parameters.
 
 An execution environment may provide additional implementation-specific attributes that affect the execution of a C# program.
 
@@ -530,6 +567,7 @@ The attribute `Conditional` enables the definition of ***conditional methods*** 
 A method decorated with the `Conditional` attribute is a conditional method. Each conditional method is thus associated with the conditional compilation symbols declared in its `Conditional` attributes.
 
 > *Example*:
+>
 > ```csharp
 > using System.Diagnostics;
 >
@@ -543,7 +581,10 @@ A method decorated with the `Conditional` attribute is a conditional method. Eac
 >     }
 > }
 > ```
-> declares `Eg.M` as a conditional method associated with the two conditional compilation symbols `ALPHA` and `BETA`. *end example*
+>
+> declares `Eg.M` as a conditional method associated with the two conditional compilation symbols `ALPHA` and `BETA`.
+>
+> *end example*
 
 A call to a conditional method is included if one or more of its associated conditional compilation symbols is defined at the point of call, otherwise the call is omitted.
 
@@ -558,6 +599,7 @@ A conditional method is subject to the following restrictions:
 In addition, a compile-time error occurs if a delegate is created from a conditional method.
 
 > *Example*: The example
+>
 > ```csharp
 > #define DEBUG
 > using System;
@@ -580,11 +622,15 @@ In addition, a compile-time error occurs if a delegate is created from a conditi
 >     }
 > }
 > ```
-> declares `Class1.M` as a conditional method. `Class2`'s `Test` method calls this method. Since the conditional compilation symbol `DEBUG` is defined, if `Class2.Test` is called, it will call `M`. If the symbol `DEBUG` had not been defined, then `Class2.Test` would not call `Class1.M`. *end example*
+>
+> declares `Class1.M` as a conditional method. `Class2`’s `Test` method calls this method. Since the conditional compilation symbol `DEBUG` is defined, if `Class2.Test` is called, it will call `M`. If the symbol `DEBUG` had not been defined, then `Class2.Test` would not call `Class1.M`.
+>
+> *end example*
 
 It is important to understand that the inclusion or exclusion of a call to a conditional method is controlled by the conditional compilation symbols at the point of the call.
 
 > *Example*: In the following code
+>
 > ```csharp
 > // File `class1.cs`:
 > using System.Diagnostics;
@@ -618,11 +664,15 @@ It is important to understand that the inclusion or exclusion of a call to a con
 >     }
 > }
 > ```
-> the classes `Class2` and `Class3` each contain calls to the conditional method `Class1.F`, which is conditional based on whether or not `DEBUG` is defined. Since this symbol is defined in the context of `Class2` but not `Class3`, the call to `F` in `Class2` is included, while the call to `F` in `Class3` is omitted. *end example*
+>
+> the classes `Class2` and `Class3` each contain calls to the conditional method `Class1.F`, which is conditional based on whether or not `DEBUG` is defined. Since this symbol is defined in the context of `Class2` but not `Class3`, the call to `F` in `Class2` is included, while the call to `F` in `Class3` is omitted.
+>
+> *end example*
 
 The use of conditional methods in an inheritance chain can be confusing. Calls made to a conditional method through `base`, of the form `base.M`, are subject to the normal conditional method call rules.
 
 > *Example*: In the following code
+>
 > ```csharp
 > // File `class1.cs`
 > using System;
@@ -641,7 +691,7 @@ The use of conditional methods in an inheritance chain can be confusing. Calls m
 >     public override void M()
 >     {
 >         Console.WriteLine("Class2.M executed");
->         base.M(); // base.M is not called!\
+>         base.M(); // base.M is not called!
 >     }
 > }
 > 
@@ -658,13 +708,17 @@ The use of conditional methods in an inheritance chain can be confusing. Calls m
 >     }
 > }
 > ```
-> `Class2` includes a call to the `M` defined in its base class. This call is omitted because the base method is conditional based on the presence of the symbol `DEBUG`, which is undefined. Thus, the method writes to the console "`Class2.M executed`" only. Judicious use of *pp_declaration*s can eliminate such problems. *end example*
+>
+> `Class2` includes a call to the `M` defined in its base class. This call is omitted because the base method is conditional based on the presence of the symbol `DEBUG`, which is undefined. Thus, the method writes to the console “`Class2.M executed`” only. Judicious use of *pp_declaration*s can eliminate such problems.
+>
+> *end example*
 
 #### 21.5.3.3 Conditional attribute classes
 
 An attribute class ([§21.2](attributes.md#212-attribute-classes)) decorated with one or more `Conditional` attributes is a conditional attribute class. A conditional attribute class is thus associated with the conditional compilation symbols declared in its `Conditional` attributes.
 
 > *Example*:
+>
 > ```csharp
 > using System;
 > using System.Diagnostics;
@@ -673,13 +727,17 @@ An attribute class ([§21.2](attributes.md#212-attribute-classes)) decorated wit
 > [Conditional("BETA")]
 > public class TestAttribute : Attribute {}
 > ```
-> declares `TestAttribute` as a conditional attribute class associated with the conditional compilations symbols `ALPHA` and `BETA`. *end example*
+>
+> declares `TestAttribute` as a conditional attribute class associated with the conditional compilations symbols `ALPHA` and `BETA`.
+>
+> *end example*
 
 Attribute specifications ([§21.3](attributes.md#213-attribute-specification)) of a conditional attribute are included if one or more of its associated conditional compilation symbols is defined at the point of specification, otherwise the attribute specification is omitted.
 
 It is important to note that the inclusion or exclusion of an attribute specification of a conditional attribute class is controlled by the conditional compilation symbols at the point of the specification.
 
 > *Example*: In the example
+>
 > ```csharp
 > // File `test.cs`:
 > using System;
@@ -698,7 +756,10 @@ It is important to note that the inclusion or exclusion of an attribute specific
 > [Test] // TestAttribute is not specified
 > class Class2 {}
 > ```
-> the classes `Class1` and `Class2` are each decorated with attribute `Test`, which is conditional based on whether or not `DEBUG` is defined. Since this symbol is defined in the context of `Class1` but not `Class2`, the specification of the Test attribute on `Class1` is included, while the specification of the `Test` attribute on `Class2` is omitted. *end example*
+>
+> the classes `Class1` and `Class2` are each decorated with attribute `Test`, which is conditional based on whether or not `DEBUG` is defined. Since this symbol is defined in the context of `Class1` but not `Class2`, the specification of the Test attribute on `Class1` is included, while the specification of the `Test` attribute on `Class2` is omitted.
+>
+> *end example*
 
 ### 21.5.4 The Obsolete attribute
 
@@ -707,6 +768,7 @@ The attribute `Obsolete` is used to mark types and members of types that should 
 If a program uses a type or member that is decorated with the `Obsolete` attribute, the compiler shall issue a warning or an error. Specifically, the compiler shall issue a warning if no error parameter is provided, or if the error parameter is provided and has the value `false`. The compiler shall issue an error if the error parameter is specified and has the value `true`.
 
 > *Example*: In the following code
+>
 > ```csharp
 > [Obsolete("This class is obsolete; use class B instead")]
 > class A
@@ -728,7 +790,10 @@ If a program uses a type or member that is decorated with the `Obsolete` attribu
 >     }
 > }
 > ```
-> the class `A` is decorated with the `Obsolete` attribute. Each use of `A` in `Main` results in a warning that includes the specified message, "This class is obsolete; use class `B` instead". *end example*
+>
+> the class `A` is decorated with the `Obsolete` attribute. Each use of `A` in `Main` results in a warning that includes the specified message, “This class is obsolete; use class `B` instead”.
+>
+> *end example*
 
 ### 21.5.5 Caller-info attributes
 
@@ -739,15 +804,16 @@ For purposes such as logging and reporting, it is sometimes useful for a functio
 When an optional parameter is annotated with one of the caller-info attributes, omitting the corresponding argument in a call does not necessarily cause the default parameter value to be substituted. Instead, if the specified information about the calling context is available, that information will be passed as the argument value.
 
 > *Example*:
+>
 > ```csharp
 > using System.Runtime.CompilerServices
 >
 > ...
 >
 > public void Log(
->    [CallerLineNumber] int line = -1,
->    [CallerFilePath] string path = null,
->    [CallerMemberName] string name = null
+>     [CallerLineNumber] int line = -1,
+>     [CallerFilePath] string path = null,
+>     [CallerMemberName] string name = null
 > )
 > {
 >     Console.WriteLine((line < 0) ? "No line" : "Line "+ line);
@@ -755,7 +821,10 @@ When an optional parameter is annotated with one of the caller-info attributes, 
 >     Console.WriteLine((name == null) ? "No member name" : name);
 > }
 > ```
-> A call to `Log()` with no arguments would print the line number and file path of the call, as well as the name of the member within which the call occurred. *end example*
+>
+> A call to `Log()` with no arguments would print the line number and file path of the call, as well as the name of the member within which the call occurred.
+>
+> *end example*
 
 Caller-info attributes can occur on optional parameters anywhere, including in delegate declarations. However, the specific caller-info attributes have restrictions on the types of the parameters they can attribute, so that there will always be an implicit conversion from a substituted value to the parameter type.
 
@@ -771,9 +840,9 @@ If more than one caller-info attribute is specified on a given parameter, they a
 
 #### 21.5.5.2 The CallerLineNumber attribute
 
-The `System.Runtime.CompilerServices.CallerLineNumberAttribute` is allowed on optional parameters when there is a standard implicit conversion ([§10.4.2](conversions.md#1042-standard-implicit-conversions)) from the constant value `int.MaxValue` to the parameter's type. This ensures that any non-negative line number up to that value can be passed without error.
+The `System.Runtime.CompilerServices.CallerLineNumberAttribute` is allowed on optional parameters when there is a standard implicit conversion ([§10.4.2](conversions.md#1042-standard-implicit-conversions)) from the constant value `int.MaxValue` to the parameter’s type. This ensures that any non-negative line number up to that value can be passed without error.
 
-If a function invocation from a location in source code omits an optional parameter with the `CallerLineNumberAttribute`, then a numeric literal representing that location's line number is used as an argument to the invocation instead of the default parameter value.
+If a function invocation from a location in source code omits an optional parameter with the `CallerLineNumberAttribute`, then a numeric literal representing that location’s line number is used as an argument to the invocation instead of the default parameter value.
 
 If the invocation spans multiple lines, the line chosen is implementation-dependent.
 
@@ -781,9 +850,9 @@ The line number may be affected by `#line` directives ([§6.5.8](lexical-structu
 
 #### 21.5.5.3 The CallerFilePath attribute
 
-The `System.Runtime.CompilerServices.CallerFilePathAttribute` is allowed on optional parameters when there is a standard implicit conversion ([§10.4.2](conversions.md#1042-standard-implicit-conversions)) from `string` to the parameter's type.
+The `System.Runtime.CompilerServices.CallerFilePathAttribute` is allowed on optional parameters when there is a standard implicit conversion ([§10.4.2](conversions.md#1042-standard-implicit-conversions)) from `string` to the parameter’s type.
 
-If a function invocation from a location in source code omits an optional parameter with the `CallerFilePathAttribute`, then a string literal representing that location's file path is used as an argument to the invocation instead of the default parameter value.
+If a function invocation from a location in source code omits an optional parameter with the `CallerFilePathAttribute`, then a string literal representing that location’s file path is used as an argument to the invocation instead of the default parameter value.
 
 The format of the file path is implementation-dependent.
 
@@ -791,7 +860,7 @@ The file path may be affected by `#line` directives ([§6.5.8](lexical-structure
 
 #### 21.5.5.4 The CallerMemberName attribute
 
-The `System.Runtime.CompilerServices.CallerMemberNameAttribute` is allowed on optional parameters when there is a standard implicit conversion ([§10.4.2](conversions.md#1042-standard-implicit-conversions)) from `string` to the parameter's type.
+The `System.Runtime.CompilerServices.CallerMemberNameAttribute` is allowed on optional parameters when there is a standard implicit conversion ([§10.4.2](conversions.md#1042-standard-implicit-conversions)) from `string` to the parameter’s type.
 
 If a function invocation from a location within the body of a function member or within an attribute applied to the function member itself or its return type, parameters or type parameters in source code omits an optional parameter with the `CallerMemberNameAttribute`, then a string literal representing the name of that member is used as an argument to the invocation instead of the default parameter value.
 
@@ -810,8 +879,9 @@ For invocations that occur within declarations of instance constructors, static 
 ## 21.6 Attributes for interoperation
 
 For interoperation with other languages, an indexer may be implemented using indexed properties. If no `IndexerName` attribute is present for an indexer, then the name `Item` is used by default. The `IndexerName` attribute enables a developer to override this default and specify a different name.
-   
-> *Example*: By default, an indexer's name is `Item`. This can be overridden, as follows:
+
+> *Example*: By default, an indexer’s name is `Item`. This can be overridden, as follows:
+>
 > ```csharp
 > [System.Runtime.CompilerServices.IndexerName("TheItem")]
 > public int this[int index]
@@ -819,5 +889,7 @@ For interoperation with other languages, an indexer may be implemented using ind
 >     // get and set accessors
 > }
 > ```
-> Now, the indexer's name is `TheItem`.
+>
+> Now, the indexer’s name is `TheItem`.
+>
 > *end example*

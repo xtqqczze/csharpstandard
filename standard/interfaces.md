@@ -12,18 +12,19 @@ Interfaces can contain methods, properties, events, and indexers. The interface 
 
 An *interface_declaration* is a *type_declaration* ([§13.7](namespaces.md#137-type-declarations)) that declares a new interface type.
 
-```ANTLR 
+```ANTLR
 interface_declaration
-    : attributes? interface_modifier* 'partial'? 'interface' identifier variant_type_parameter_list?
-      interface_base? type_parameter_constraints_clause* interface_body ';'?
+    : attributes? interface_modifier* 'partial'? 'interface'
+      identifier variant_type_parameter_list? interface_base?
+      type_parameter_constraints_clause* interface_body ';'?
     ;
 ```
 
-An *interface_declaration* consists of an optional set of *attributes* ([§21](attributes.md#21-attributes)), followed by an optional set of *interface_modifier*s ([§17.2.2](interfaces.md#1722-interface-modifiers)), followed by an optional partial modifier ([§14.2.7](classes.md#1427-partial-declarations)), followed by the keyword interface and an *identifier* that names the interface, followed by an optional *variant_type_parameter_list* specification ([§17.2.3](interfaces.md#1723-variant-type-parameter-lists)), followed by an optional *interface_base* specification ([§17.2.4](interfaces.md#1724-base-interfaces)), followed by an optional *type_parameter_constraints_clause*s specification ([§14.2.5](classes.md#1425-type-parameter-constraints)), followed by an *interface_body* ([§17.3](interfaces.md#173-interface-body)), optionally followed by a semicolon.
+An *interface_declaration* consists of an optional set of *attributes* ([§21](attributes.md#21-attributes)), followed by an optional set of *interface_modifier*s ([§17.2.2](interfaces.md#1722-interface-modifiers)), followed by an optional partial modifier ([§14.2.7](classes.md#1427-partial-declarations)), followed by the keyword `interface` and an *identifier* that names the interface, followed by an optional *variant_type_parameter_list* specification ([§17.2.3](interfaces.md#1723-variant-type-parameter-lists)), followed by an optional *interface_base* specification ([§17.2.4](interfaces.md#1724-base-interfaces)), followed by an optional *type_parameter_constraints_clause*s specification ([§14.2.5](classes.md#1425-type-parameter-constraints)), followed by an *interface_body* ([§17.3](interfaces.md#173-interface-body)), optionally followed by a semicolon.
 
 An interface declaration shall not supply a *type_parameter_constraints_clause*s unless it also supplies a *type_parameter_list*.
 
-An interface declaration that supplies a *type_parameter_list* is a generic interface declaration. Additionally, any interface nested inside a generic class declaration or a generic struct declaration is itself a generic interface declaration, since type arguments for the containing type shall be supplied to create a constructed type.
+An interface declaration that supplies a *type_parameter_list* is a generic interface declaration. Additionally, any interface nested inside a generic class declaration or a generic struct declaration is itself a generic interface declaration, since type arguments for the containing type shall be supplied to create a constructed type ([§8.4](types.md#84-constructed-types)).
 
 ### 17.2.2 Interface modifiers
 
@@ -63,7 +64,8 @@ variant_type_parameter_list
 ```ANTLR
 variant_type_parameters
     : attributes? variance_annotation? type_parameter
-    | variant_type_parameters ',' attributes? variance_annotation? type_parameter
+    | variant_type_parameters ',' attributes? variance_annotation?
+      type_parameter
     ;
 ```
 
@@ -77,6 +79,7 @@ variance_annotation
 If the variance annotation is `out`, the type parameter is said to be ***covariant***. If the variance annotation is `in`, the type parameter is said to be ***contravariant***. If there is no variance annotation, the type parameter is said to be ***invariant***.
 
 > *Example*: In the following:
+>
 > ```csharp
 > interface C<out X, in Y, Z>
 > {
@@ -84,7 +87,10 @@ If the variance annotation is `out`, the type parameter is said to be ***covaria
 >     Z P { get; set; }
 > }
 > ```
-> `X` is covariant, `Y` is contravariant and `Z` is invariant. *end example*
+>
+> `X` is covariant, `Y` is contravariant and `Z` is invariant.
+>
+> *end example*
 
 If a generic interface is declared in multiple parts ([§14.2.3](classes.md#1423-type-parameters)), each partial declaration shall specify the same variance for each type parameter.
 
@@ -93,18 +99,20 @@ If a generic interface is declared in multiple parts ([§14.2.3](classes.md#1423
 The occurrence of variance annotations in the type parameter list of a type restricts the places where types can occur within the type declaration.
 
 A type T is ***output-unsafe*** if one of the following holds:
+
 - `T` is a contravariant type parameter
 - `T` is an array type with an output-unsafe element type
 - `T` is an interface or delegate type `Sᵢ,... Aₑ` constructed from a generic type `S<Xᵢ, ... Xₑ>` where for at least one `Aᵢ` one of the following holds:
-    - `Xᵢ` is covariant or invariant and `Aᵢ` is output-unsafe.
-    - `Xᵢ` is contravariant or invariant and `Aᵢ` is input-unsafe.
+  - `Xᵢ` is covariant or invariant and `Aᵢ` is output-unsafe.
+  - `Xᵢ` is contravariant or invariant and `Aᵢ` is input-unsafe.
 
 A type T is ***input-unsafe*** if one of the following holds:
+
 - `T` is a covariant type parameter
 - `T` is an array type with an input-unsafe element type
 - `T` is an interface or delegate type  `S<Aᵢ,... Aₑ>` constructed from a generic type `S<Xᵢ, ... Xₑ>` where for at least one `Aᵢ` one of the following holds:
-    - `Xᵢ` is covariant or invariant and `Aᵢ` is input-unsafe.
-    - `Xᵢ` is contravariant or invariant and `Aᵢ` is output-unsafe.
+  - `Xᵢ` is covariant or invariant and `Aᵢ` is input-unsafe.
+  - `Xᵢ` is contravariant or invariant and `Aᵢ` is output-unsafe.
 
 Intuitively, an output-unsafe type is prohibited in an output position, and an input-unsafe type is prohibited in an input position.
 
@@ -134,7 +142,7 @@ The explicit base interfaces can be constructed interface types ([§8.4](types.m
 
 For a constructed interface type, the explicit base interfaces are formed by taking the explicit base interface declarations on the generic type declaration, and substituting, for each *type_parameter* in the base interface declaration, the corresponding *type_argument* of the constructed type.
 
-The explicit base interfaces of an interface shall be at least as accessible as the interface itself ([§7.5.5](basic-concepts.md#755-accessibility-constraints)). 
+The explicit base interfaces of an interface shall be at least as accessible as the interface itself ([§7.5.5](basic-concepts.md#755-accessibility-constraints)).
 
 > *Note*: For example, it is a compile-time error to specify a `private` or `internal` interface in the *interface_base* of a `public` interface. *end note*
 
@@ -143,6 +151,7 @@ It is a compile-time error for an interface to directly or indirectly inherit fr
 The ***base interfaces*** of an interface are the explicit base interfaces and their base interfaces. In other words, the set of base interfaces is the complete transitive closure of the explicit base interfaces, their explicit base interfaces, and so on. An interface inherits all members of its base interfaces.
 
 > *Example*: In the following code
+>
 > ```csharp
 > interface IControl
 > {
@@ -161,11 +170,15 @@ The ***base interfaces*** of an interface are the explicit base interfaces and t
 >
 > interface IComboBox: ITextBox, IListBox {}
 > ```
-> the base interfaces of `IComboBox` are `IControl`, `ITextBox`, and `IListBox`. In other words, the `IComboBox` interface above inherits members `SetText` and `SetItems` as well as `Paint`. *end example*
+>
+> the base interfaces of `IComboBox` are `IControl`, `ITextBox`, and `IListBox`. In other words, the `IComboBox` interface above inherits members `SetText` and `SetItems` as well as `Paint`.
+>
+> *end example*
 
 Members inherited from a constructed generic type are inherited after type substitution. That is, any constituent types in the member have the base class declaration’s type parameters replaced with the corresponding type arguments used in the *class_base* specification.
 
 > *Example*: In the following code
+>
 > ```csharp
 > interface IBase<T>
 > {
@@ -177,9 +190,12 @@ Members inherited from a constructed generic type are inherited after type subst
 >     // Inherited: string[][,] Combine(string[,] a, string[,] b);
 > }
 > ```
-> the interface IDerived inherits the Combine method after the type parameter `T` is replaced with `string[,]`. *end example*
+>
+> the interface IDerived inherits the Combine method after the type parameter `T` is replaced with `string[,]`.
+>
+> *end example*
 
-A class or struct that implements an interface also implicitly implements all of the interface's base interfaces.
+A class or struct that implements an interface also implicitly implements all of the interface’s base interfaces.
 
 The handling of interfaces on multiple parts of a partial interface declaration ([§14.2.7](classes.md#1427-partial-declarations)) are discussed further in [§14.2.4.3](classes.md#14243-interface-implementations).
 
@@ -225,7 +241,7 @@ The inherited members of an interface are specifically not part of the declarati
 
 If a `new` modifier is included in a declaration that doesn’t hide an inherited member, a warning is issued to that effect. This warning is suppressed by removing the `new` modifier.
 
-> *Note*: The members in class `object` are not, strictly speaking, members of any interface ([§17.4](interfaces.md#174-interface-members)). However, the members in class object are available via member lookup in any interface type ([§11.5](expressions.md#115-member-lookup)). *end note*
+> *Note*: The members in class `object` are not, strictly speaking, members of any interface ([§17.4](interfaces.md#174-interface-members)). However, the members in class `object` are available via member lookup in any interface type ([§11.5](expressions.md#115-member-lookup)). *end note*
 
 The set of members of an interface declared in multiple parts ([§14.2.7](classes.md#1427-partial-declarations)) is the union of the members declared in each part. The bodies of all parts of the interface declaration share the same declaration space ([§7.3](basic-concepts.md#73-declarations)), and the scope of each member ([§7.7](basic-concepts.md#77-scopes)) extends to the bodies of all the parts.
 
@@ -235,7 +251,8 @@ Interface methods are declared using *interface_method_declaration*s:
 
 ```ANTLR
 interface_method_declaration
-    : attributes? 'new'? return_type identifier type_parameter_list? '(' formal_parameter_list? ')' type_parameter_constraints_clause* ';'
+    : attributes? 'new'? return_type identifier type_parameter_list?
+      '(' formal_parameter_list? ')' type_parameter_constraints_clause* ';'
     ;
 ```
 
@@ -245,22 +262,25 @@ All formal parameter types of an interface method shall be input-safe ([§17.2.3
 
 > *Note*: Output  parameters are required to be input-safe due to common implementation restrictions. *end note*
 
-Furthermore, each class type constraint, interface type constraint and type parameter constraint on any type parameters of the method shall be input-safe. 
+Furthermore, each class type constraint, interface type constraint and type parameter constraint on any type parameters of the method shall be input-safe.
 
 Furthermore, each class type constraint, interface type constraint and type parameter constraint on any type parameter of the method shall be input-safe.
 
 These rules ensure that any covariant or contravariant usage of the interface remains typesafe.
 
 > *Example*:
+>
 > ```csharp
 > interface I<out T>
 > {
 >     void M<U>() where U : T; 
 > }
 > ```
+>
 > is ill-formed because the usage of `T` as a type parameter constraint on `U` is not input-safe.
-> 
+>
 > Were this restriction not in place it would be possible to violate type safety in the following manner:
+>
 > ```csharp
 > class B {}
 > class D : B {}
@@ -275,7 +295,10 @@ These rules ensure that any covariant or contravariant usage of the interface re
 > I<B> b = new C();
 > b.M<E>();
 > ```
-> This is actually a call to `C.M<E>`. But that call requires that `E` derive from `D`, so type safety would be violated here. *end example*
+>
+> This is actually a call to `C.M<E>`. But that call requires that `E` derive from `D`, so type safety would be violated here.
+>
+> *end example*
 
 ### 17.4.3 Interface properties
 
@@ -322,7 +345,8 @@ Interface indexers are declared using *interface_indexer_declaration*s:
 
 ```ANTLR
 interface_indexer_declaration:
-    attributes? 'new'? type 'this' '[' formal_parameter_list ']' '{' interface_accessors '}'
+    attributes? 'new'? type 'this' '[' formal_parameter_list ']'
+    '{' interface_accessors '}'
     ;
 ```
 
@@ -340,10 +364,10 @@ The type of an interface indexer shall be output-safe if there is a get accessor
 
 Interface members are accessed through member access ([§11.7.6](expressions.md#1176-member-access)) and indexer access ([§11.7.10.3](expressions.md#117103-indexer-access)) expressions of the form `I.M` and `I[A]`, where `I` is an interface type, `M` is a method, property, or event of that interface type, and `A` is an indexer argument list.
 
-For interfaces that are strictly single-inheritance (each interface in the inheritance chain has exactly zero or one direct base interface), the effects of the member lookup ([§11.5](expressions.md#115-member-lookup)), method invocation ([§11.7.8.2](expressions.md#11782-method-invocations)), and indexer access ([§11.7.10.3](expressions.md#117103-indexer-access)) rules are exactly the same as for classes and structs: More derived members hide less derived members with the same name or signature. However, for multiple-inheritance interfaces, ambiguities can occur when two or more unrelated base interfaces declare members with the same name or signature. This subclause shows several examples, some of which lead to ambiguities and others which don't. In all cases, explicit casts can be used to resolve the ambiguities.
+For interfaces that are strictly single-inheritance (each interface in the inheritance chain has exactly zero or one direct base interface), the effects of the member lookup ([§11.5](expressions.md#115-member-lookup)), method invocation ([§11.7.8.2](expressions.md#11782-method-invocations)), and indexer access ([§11.7.10.3](expressions.md#117103-indexer-access)) rules are exactly the same as for classes and structs: More derived members hide less derived members with the same name or signature. However, for multiple-inheritance interfaces, ambiguities can occur when two or more unrelated base interfaces declare members with the same name or signature. This subclause shows several examples, some of which lead to ambiguities and others which don’t. In all cases, explicit casts can be used to resolve the ambiguities.
 
 > *Example*: In the following code
-> 
+>
 > ```csharp
 > interface IList
 > {
@@ -368,9 +392,15 @@ For interfaces that are strictly single-inheritance (each interface in the inher
 >     }
 > }
 > ```
-> the first two statements cause compile-time errors because the member lookup ([§11.5](expressions.md#115-member-lookup)) of `Count` in `IListCounter` is ambiguous. As illustrated by the example, the ambiguity is resolved by casting `x` to the appropriate base interface type. Such casts have no run-time costs—they merely consist of viewing the instance as a less derived type at compile-time. *end example*
+>
+> the first two statements cause compile-time errors because the member lookup ([§11.5](expressions.md#115-member-lookup)) of `Count` in `IListCounter` is ambiguous. As illustrated by the example, the ambiguity is resolved by casting `x` to the appropriate base interface type. Such casts have no run-time costs—they merely consist of viewing the instance as a less derived type at compile-time.
+>
+> *end example*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: In the following code
+>
 > ```csharp
 > interface IInteger
 > {
@@ -395,9 +425,15 @@ For interfaces that are strictly single-inheritance (each interface in the inher
 >     }
 > }
 > ```
-> the invocation `n.Add(1)` selects `IInteger.Add` by applying overload resolution rules of [§11.6.4](expressions.md#1164-overload-resolution). Similarly, the invocation `n.Add(1.0)` selects `IDouble.Add`. When explicit casts are inserted, there is only one candidate method, and thus no ambiguity. *end example*
+>
+> the invocation `n.Add(1)` selects `IInteger.Add` by applying overload resolution rules of [§11.6.4](expressions.md#1164-overload-resolution). Similarly, the invocation `n.Add(1.0)` selects `IDouble.Add`. When explicit casts are inserted, there is only one candidate method, and thus no ambiguity.
+>
+> *end example*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: In the following code
+>
 > ```csharp
 > interface IBase
 > {
@@ -427,15 +463,19 @@ For interfaces that are strictly single-inheritance (each interface in the inher
 >     }
 > }
 > ```
+>
 > the `IBase.F` member is hidden by the `ILeft.F` member. The invocation `d.F(1)` thus selects `ILeft.F`, even though `IBase.F` appears to not be hidden in the access path that leads through `IRight`.
-> 
-> The intuitive rule for hiding in multiple-inheritance interfaces is simply this: If a member is hidden in any access path, it is hidden in all access paths. Because the access path from `IDerived` to `ILeft` to `IBase` hides `IBase.F`, the member is also hidden in the access path from `IDerived` to `IRight` to `IBase`. *end example*
+>
+> The intuitive rule for hiding in multiple-inheritance interfaces is simply this: If a member is hidden in any access path, it is hidden in all access paths. Because the access path from `IDerived` to `ILeft` to `IBase` hides `IBase.F`, the member is also hidden in the access path from `IDerived` to `IRight` to `IBase`.
+>
+> *end example*
 
 ## 17.5 Qualified interface member names
 
 An interface member is sometimes referred to by its ***qualified interface member name***. The qualified name of an interface member consists of the name of the interface in which the member is declared, followed by a dot, followed by the name of the member. The qualified name of a member references the interface in which the member is declared.
 
 > *Example*: Given the declarations
+>
 > ```csharp
 > interface IControl
 > {
@@ -447,11 +487,15 @@ An interface member is sometimes referred to by its ***qualified interface membe
 >     void SetText(string text);
 > }
 > ```
-> the qualified name of `Paint` is `IControl.Paint` and the qualified name of SetText is `ITextBox.SetText`. In the example above, it is not possible to refer to `Paint` as `ITextBox.Paint`. *end example*
+>
+> the qualified name of `Paint` is `IControl.Paint` and the qualified name of SetText is `ITextBox.SetText`. In the example above, it is not possible to refer to `Paint` as `ITextBox.Paint`.
+>
+> *end example*
 
 When an interface is part of a namespace, a qualified interface member name can include the namespace name.
 
 > *Example*:
+>
 > ```csharp
 > namespace System
 > {
@@ -461,7 +505,10 @@ When an interface is part of a namespace, a qualified interface member name can 
 >     }
 > }
 > ```
-> Within the `System` namespace, both `ICloneable.Clone` and `System.ICloneable.Clone` are qualified interface member names for the `Clone` method. *end example*
+>
+> Within the `System` namespace, both `ICloneable.Clone` and `System.ICloneable.Clone` are qualified interface member names for the `Clone` method.
+>
+> *end example*
 
 ## 17.6 Interface implementations
 
@@ -470,6 +517,7 @@ When an interface is part of a namespace, a qualified interface member name can 
 Interfaces may be implemented by classes and structs. To indicate that a class or struct directly implements an interface, the interface is included in the base class list of the class or struct.
 
 > *Example*:
+>
 > ```csharp
 > interface ICloneable
 > {
@@ -487,11 +535,13 @@ Interfaces may be implemented by classes and structs. To indicate that a class o
 >     public int CompareTo(object other) {...}
 > }
 > ```
+>
 > *end example*
 
-A class or struct that directly implements an interface also implicitly implements all of the interface's base interfaces. This is true even if the class or struct doesn't explicitly list all base interfaces in the base class list.
+A class or struct that directly implements an interface also implicitly implements all of the interface’s base interfaces. This is true even if the class or struct doesn’t explicitly list all base interfaces in the base class list.
 
 > *Example*:
+>
 > ```csharp
 > interface IControl
 > {
@@ -509,19 +559,24 @@ A class or struct that directly implements an interface also implicitly implemen
 >     public void SetText(string text) {...}
 > }
 > ```
-> Here, class `TextBox` implements both `IControl` and `ITextBox`. *end example*
+>
+> Here, class `TextBox` implements both `IControl` and `ITextBox`.
+>
+> *end example*
 
 When a class `C` directly implements an interface, all classes derived from `C` also implement the interface implicitly.
 
 The base interfaces specified in a class declaration can be constructed interface types ([§8.4](types.md#84-constructed-types), [§17.2](interfaces.md#172-interface-declarations)).
 
 > *Example*: The following code illustrates how a class can implement constructed interface types:
+>
 > ```csharp
 > class C<U, V> {}
 > interface I1<V> {}
 > class D : C<string, int>, I1<string> {}
 > class E<T> : C<int, T>, I1<T> {}
 > ```
+>
 > *end example*
 
 The base interfaces of a generic class declaration shall satisfy the uniqueness rule described in [§17.6.3](interfaces.md#1763-uniqueness-of-implemented-interfaces).
@@ -531,6 +586,7 @@ The base interfaces of a generic class declaration shall satisfy the uniqueness 
 For purposes of implementing interfaces, a class or struct may declare ***explicit interface member implementations***. An explicit interface member implementation is a method, property, event, or indexer declaration that references a qualified interface member name.
 
 > *Example*:
+>
 > ```csharp
 > interface IList<T>
 > {
@@ -550,9 +606,15 @@ For purposes of implementing interfaces, a class or struct may declare ***explic
 >     void IDictionary<int, T>.Add(int index, T value) {...}
 > }
 > ```
-> Here `IDictionary<int,T>.this` and `IDictionary<int,T>.Add` are explicit interface member implementations. *end example*
+>
+> Here `IDictionary<int,T>.this` and `IDictionary<int,T>.Add` are explicit interface member implementations.
+>
+> *end example*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: In some cases, the name of an interface member might not be appropriate for the implementing class, in which case, the interface member may be implemented using explicit interface member implementation. A class implementing a file abstraction, for example, would likely implement a `Close` member function that has the effect of releasing the file resource, and implement the `Dispose` method of the `IDisposable` interface using explicit interface member implementation:
+>
 > ```csharp
 > interface IDisposable
 > {
@@ -570,6 +632,7 @@ For purposes of implementing interfaces, a class or struct may declare ***explic
 >     }
 > }
 > ```
+>
 > *end example*
 
 It is not possible to access an explicit interface member implementation through its qualified interface member name in a method invocation, property access, event access, or indexer access. An explicit interface member implementation can only be accessed through an interface instance, and is in that case referenced simply by its member name.
@@ -580,13 +643,16 @@ It is a compile-time error for an explicit interface method implementation to in
 
 > *Note*: Explicit interface member implementations have different accessibility characteristics than other members. Because explicit interface member implementations are never accessible through a qualified interface member name in a method invocation or a property access, they are in a sense private. However, since they can be accessed through the interface, they are in a sense also as public as the interface in which they are declared.
 > Explicit interface member implementations serve two primary purposes:
+>
 > - Because explicit interface member implementations are not accessible through class or struct instances, they allow interface implementations to be excluded from the public interface of a class or struct. This is particularly useful when a class or struct implements an internal interface that is of no interest to a consumer of that class or struct.
-> - Explicit interface member implementations allow disambiguation of interface members with the same signature. Without explicit interface member implementations it would be impossible for a class or struct to have different implementations of interface members with the same signature and return type, as would it be impossible for a class or struct to have any implementation at all of interface members with the same signature but with different return types.  
-*end note*
+> - Explicit interface member implementations allow disambiguation of interface members with the same signature. Without explicit interface member implementations it would be impossible for a class or struct to have different implementations of interface members with the same signature and return type, as would it be impossible for a class or struct to have any implementation at all of interface members with the same signature but with different return types.
+>
+> *end note*
 
 For an explicit interface member implementation to be valid, the class or struct shall name an interface in its base class list that contains a member whose qualified interface member name, type, number of type parameters, and parameter types exactly match those of the explicit interface member implementation. If an interface function member has a parameter array, the corresponding parameter of an associated explicit interface member implementation is allowed, but not required, to have the `params` modifier. If the interface function member does not have a parameter array then an associated explicit interface member implementation shall not have a parameter array.
 
 > *Example*: Thus, in the following class
+>
 > ```csharp
 > class Shape : ICloneable
 > {
@@ -594,7 +660,9 @@ For an explicit interface member implementation to be valid, the class or struct
 >     int IComparable.CompareTo(object other) {...} // invalid
 > }
 > ```
+>
 > the declaration of `IComparable.CompareTo` results in a compile-time error because `IComparable` is not listed in the base class list of `Shape` and is not a base interface of `ICloneable`. Likewise, in the declarations
+>
 > ```csharp
 > class Shape : ICloneable
 > {
@@ -606,11 +674,15 @@ For an explicit interface member implementation to be valid, the class or struct
 >     object ICloneable.Clone() {...} // invalid
 > }
 > ```
-> the declaration of `ICloneable.Clone` in `Ellipse` results in a compile-time error because `ICloneable` is not explicitly listed in the base class list of `Ellipse`. *end example*
+>
+> the declaration of `ICloneable.Clone` in `Ellipse` results in a compile-time error because `ICloneable` is not explicitly listed in the base class list of `Ellipse`.
+>
+> *end example*
 
 The qualified interface member name of an explicit interface member implementation shall reference the interface in which the member was declared.
 
 > *Example*: Thus, in the declarations
+>
 > ```csharp
 > interface IControl
 > {
@@ -628,13 +700,17 @@ The qualified interface member name of an explicit interface member implementati
 >     void ITextBox.SetText(string text) {...}
 > }
 > ```
-> the explicit interface member implementation of Paint must be written as `IControl.Paint`, not `ITextBox.Paint`. *end example*
+>
+> the explicit interface member implementation of Paint must be written as `IControl.Paint`, not `ITextBox.Paint`.
+>
+> *end example*
 
 ### 17.6.3 Uniqueness of implemented interfaces
 
 The interfaces implemented by a generic type declaration shall remain unique for all possible constructed types. Without this rule, it would be impossible to determine the correct method to call for certain constructed types.
 
 > *Example*: Suppose a generic class declaration were permitted to be written as follows:
+>
 > ```csharp
 > interface I<T>
 > {
@@ -647,11 +723,14 @@ The interfaces implemented by a generic type declaration shall remain unique for
 >     void I<V>.F() {...}
 > }
 > ```
+>
 > Were this permitted, it would be impossible to determine which code to execute in the following case:
+>
 > ```csharp
 > I<int> x = new X<int, int>();
 > x.F();
 > ```
+>
 > *end example*
 
 To determine if the interface list of a generic type declaration is valid, the following steps are performed:
@@ -696,6 +775,7 @@ invokes the method in `Derived`, since `Derived<int,int>'` effectively re-implem
 When a generic method implicitly implements an interface method, the constraints given for each method type parameter shall be equivalent in both declarations (after any interface type parameters are replaced with the appropriate type arguments), where method type parameters are identified by ordinal positions, left to right.
 
 > *Example*: In the following code:
+>
 > ```csharp
 > interface I<X, Y, Z>
 > {
@@ -711,7 +791,9 @@ When a generic method implicitly implements an interface method, the constraints
 >     public void H<T>(T t) where T : string {...} // Error
 > }
 > ```
+>
 > the method `C.F<T>` implicitly implements `I<object,C,string>.F<T>`. In this case, `C.F<T>` is not required (nor permitted) to specify the constraint `T: object` since `object` is an implicit constraint on all type parameters. The method `C.G<T>` implicitly implements `I<object,C,string>.G<T>` because the constraints match those in the interface, after the interface type parameters are replaced with the corresponding type arguments. The constraint for method `C.H<T>` is an error because sealed types (`string` in this case) cannot be used as constraints. Omitting the constraint would also be an error since constraints of implicit interface method implementations are required to match. Thus, it is impossible to implicitly implement `I<object,C,string>.H<T>`. This interface method can only be implemented using an explicit interface member implementation:
+>
 > ```csharp
 > class C : I<object, C, string>
 > {
@@ -725,9 +807,12 @@ When a generic method implicitly implements an interface method, the constraints
 >     }
 > }
 > ```
+>
 > In this case, the explicit interface member implementation invokes a public method having strictly weaker constraints. The assignment from t to s is valid since `T` inherits a constraint of `T: string`, even though this constraint is not expressible in source code.
 >*end example*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Note*: When a generic method explicitly implements an interface method no constraints are allowed on the implementing method ([§14.7.1](classes.md#1471-general), [§17.6.2](interfaces.md#1762-explicit-interface-member-implementations)). *end note*
 
 ### 17.6.5 Interface mapping
@@ -744,6 +829,7 @@ A compile-time error occurs if implementations cannot be located for all members
 Members of a constructed interface type are considered to have any type parameters replaced with the corresponding type arguments as specified in [§14.3.3](classes.md#1433-members-of-constructed-types).
 
 > *Example*: For example, given the generic interface declaration:
+>
 > ```csharp
 > interface I<T>
 > {
@@ -751,11 +837,14 @@ Members of a constructed interface type are considered to have any type paramete
 >     T this[int y] { get; }
 > }
 > ```
+>
 > the constructed interface `I<string[]>` has the members:
+>
 > ```csharp
 > string[] F(int x, string[,][] y);
 > string[] this[int y] { get; }
 > ```
+>
 > *end example*
 
 For purposes of interface mapping, a class or struct member `A` matches an interface member `B` when:
@@ -771,6 +860,7 @@ Notable implications of the interface-mapping algorithm are:
 - Neither non-public nor static members participate in interface mapping.
 
 > *Example*: In the following code
+>
 > ```csharp
 > interface ICloneable
 > {
@@ -783,11 +873,15 @@ Notable implications of the interface-mapping algorithm are:
 >     public object Clone() {...}
 > }
 > ```
-> the `ICloneable.Clone` member of `C` becomes the implementation of `Clone` in 'ICloneable' because explicit interface member implementations take precedence over other members. *end example*
+>
+> the `ICloneable.Clone` member of `C` becomes the implementation of `Clone` in ‘ICloneable’ because explicit interface member implementations take precedence over other members.
+>
+> *end example*
 
 If a class or struct implements two or more interfaces containing a member with the same name, type, and parameter types, it is possible to map each of those interface members onto a single class or struct member.
 
 > *Example*:
+>
 > ```csharp
 > interface IControl
 > {
@@ -804,11 +898,15 @@ If a class or struct implements two or more interfaces containing a member with 
 >     public void Paint() {...}
 > }
 > ```
-> Here, the `Paint` methods of both `IControl` and `IForm` are mapped onto the `Paint` method in `Page`. It is of course also possible to have separate explicit interface member implementations for the two methods. *end example*
+>
+> Here, the `Paint` methods of both `IControl` and `IForm` are mapped onto the `Paint` method in `Page`. It is of course also possible to have separate explicit interface member implementations for the two methods.
+>
+> *end example*
 
 If a class or struct implements an interface that contains hidden members, then some members may need to be implemented through explicit interface member implementations.
 
 > *Example*:
+>
 > ```csharp
 > interface IBase
 > {
@@ -820,7 +918,9 @@ If a class or struct implements an interface that contains hidden members, then 
 >     new int P();
 > }
 > ```
+>
 > An implementation of this interface would require at least one explicit interface member implementation, and would take one of the following forms
+>
 > ```csharp
 > class C : IDerived
 > {
@@ -838,11 +938,13 @@ If a class or struct implements an interface that contains hidden members, then 
 >     public int P() {...}
 > }
 > ```
+>
 > *end example*
 
 When a class implements multiple interfaces that have the same base interface, there can be only one implementation of the base interface.
 
 > *Example*: In the following code
+>
 > ```csharp
 > interface IControl
 > {
@@ -866,11 +968,15 @@ When a class implements multiple interfaces that have the same base interface, t
 >     void IListBox.SetItems(string[] items) {...}
 > }
 > ```
-> it is not possible to have separate implementations for the `IControl` named in the base class list, the `IControl` inherited by `ITextBox`, and the `IControl` inherited by `IListBox`. Indeed, there is no notion of a separate identity for these interfaces. Rather, the implementations of `ITextBox`and `IListBox` share the same implementation of `IControl`, and `ComboBox` is simply considered to implement three interfaces, `IControl`, `ITextBox`, and `IListBox`. *end example*
+>
+> it is not possible to have separate implementations for the `IControl` named in the base class list, the `IControl` inherited by `ITextBox`, and the `IControl` inherited by `IListBox`. Indeed, there is no notion of a separate identity for these interfaces. Rather, the implementations of `ITextBox`and `IListBox` share the same implementation of `IControl`, and `ComboBox` is simply considered to implement three interfaces, `IControl`, `ITextBox`, and `IListBox`.
+>
+> *end example*
 
 The members of a base class participate in interface mapping.
 
 > *Example*: In the following code
+>
 > ```csharp
 > interface Interface1
 > {
@@ -888,7 +994,10 @@ The members of a base class participate in interface mapping.
 >     public new void G() {}
 > }
 > ```
-> the method `F` in `Class1` is used in `Class2's` implementation of `Interface1`. *end example*
+>
+> the method `F` in `Class1` is used in `Class2's` implementation of `Interface1`.
+>
+> *end example*
 
 ### 17.6.6 Interface implementation inheritance
 
@@ -897,6 +1006,7 @@ A class inherits all interface implementations provided by its base classes.
 Without explicitly re-implementing an interface, a derived class cannot in any way alter the interface mappings it inherits from its base classes.
 
 > *Example*: In the declarations
+>
 > ```csharp
 > interface IControl
 > {
@@ -913,7 +1023,9 @@ Without explicitly re-implementing an interface, a derived class cannot in any w
 >     public new void Paint() {...}
 > }
 > ```
+>
 > the `Paint` method in `TextBox` hides the `Paint` method in `Control`, but it does not alter the mapping of `Control.Paint` onto `IControl.Paint`, and calls to `Paint` through class instances and interface instances will have the following effects
+>
 > ```csharp
 > Control c = new Control();
 > TextBox t = new TextBox();
@@ -924,11 +1036,13 @@ Without explicitly re-implementing an interface, a derived class cannot in any w
 > ic.Paint(); // invokes Control.Paint();
 > it.Paint(); // invokes Control.Paint();
 > ```
+>
 > *end example*
 
 However, when an interface method is mapped onto a virtual method in a class, it is possible for derived classes to override the virtual method and alter the implementation of the interface.
 
 > *Example*: Rewriting the declarations above to
+>
 > ```csharp
 > interface IControl
 > {
@@ -945,7 +1059,9 @@ However, when an interface method is mapped onto a virtual method in a class, it
 >     public override void Paint() {...}
 > }
 > ```
+>
 > the following effects will now be observed
+>
 > ```csharp
 > Control c = new Control();
 > TextBox t = new TextBox();
@@ -956,11 +1072,13 @@ However, when an interface method is mapped onto a virtual method in a class, it
 > ic.Paint(); // invokes Control.Paint();
 > it.Paint(); // invokes TextBox.Paint();
 > ```
+>
 > *end example*
 
 Since explicit interface member implementations cannot be declared virtual, it is not possible to override an explicit interface member implementation. However, it is perfectly valid for an explicit interface member implementation to call another method, and that other method can be declared virtual to allow derived classes to override it.
 
 > *Example*:
+>
 > ```csharp
 > interface IControl
 > {
@@ -978,8 +1096,10 @@ Since explicit interface member implementations cannot be declared virtual, it i
 >     protected override void PaintControl() {...}
 > }
 > ```
-
-Here, classes derived from `Control` can specialize the implementation of `IControl.Paint` by overriding the `PaintControl` method. *end example*
+>
+> Here, classes derived from `Control` can specialize the implementation of `IControl.Paint` by overriding the `PaintControl` method.
+>
+> *end example*
 
 ### 17.6.7 Interface re-implementation
 
@@ -988,6 +1108,7 @@ A class that inherits an interface implementation is permitted to ***re-implemen
 A re-implementation of an interface follows exactly the same interface mapping rules as an initial implementation of an interface. Thus, the inherited interface mapping has no effect whatsoever on the interface mapping established for the re-implementation of the interface.
 
 > *Example*: In the declarations
+>
 > ```csharp
 > interface IControl
 > {
@@ -1004,11 +1125,15 @@ A re-implementation of an interface follows exactly the same interface mapping r
 >     public void Paint() {}
 > }
 > ```
-> the fact that `Control` maps `IControl.Paint` onto `Control.IControl.Paint` doesn't affect the re-implementation in `MyControl`, which maps `IControl.Paint` onto `MyControl.Paint`. *end example*
+>
+> the fact that `Control` maps `IControl.Paint` onto `Control.IControl.Paint` doesn’t affect the re-implementation in `MyControl`, which maps `IControl.Paint` onto `MyControl.Paint`.
+>
+> *end example*
 
 Inherited public member declarations and inherited explicit interface member declarations participate in the interface mapping process for re-implemented interfaces.
 
 > *Example*:
+>
 > ```csharp
 > interface IMethods
 > {
@@ -1032,11 +1157,15 @@ Inherited public member declarations and inherited explicit interface member dec
 >     void IMethods.H() {}
 > }
 > ```
-> Here, the implementation of `IMethods` in `Derived` maps the interface methods onto `Derived.F`, `Base.IMethods.G`, `Derived.IMethods.H`, and `Base.I`. *end example*
+>
+> Here, the implementation of `IMethods` in `Derived` maps the interface methods onto `Derived.F`, `Base.IMethods.G`, `Derived.IMethods.H`, and `Base.I`.
+>
+> *end example*
 
-When a class implements an interface, it implicitly also implements all that interface's base interfaces. Likewise, a re-implementation of an interface is also implicitly a re-implementation of all of the interface's base interfaces.
+When a class implements an interface, it implicitly also implements all that interface’s base interfaces. Likewise, a re-implementation of an interface is also implicitly a re-implementation of all of the interface’s base interfaces.
 
 > *Example*:
+>
 > ```csharp
 > interface IBase
 > {
@@ -1060,13 +1189,17 @@ When a class implements an interface, it implicitly also implements all that int
 >     public void G() {...}
 > }
 > ```
-> Here, the re-implementation of `IDerived` also re-implements `IBase`, mapping `IBase.F` onto `D.F`. *end example*
+>
+> Here, the re-implementation of `IDerived` also re-implements `IBase`, mapping `IBase.F` onto `D.F`.
+>
+> *end example*
 
 ### 17.6.8 Abstract classes and interfaces
 
 Like a non-abstract class, an abstract class shall provide implementations of all members of the interfaces that are listed in the base class list of the class. However, an abstract class is permitted to map interface methods onto abstract methods.
 
 > *Example*:
+>
 > ```csharp
 > interface IMethods
 > {
@@ -1080,11 +1213,15 @@ Like a non-abstract class, an abstract class shall provide implementations of al
 >     public abstract void G();
 >     }
 > ```
-> Here, the implementation of `IMethods` maps `F` and `G` onto abstract methods, which shall be overridden in non-abstract classes that derive from `C`. *end example*
+>
+> Here, the implementation of `IMethods` maps `F` and `G` onto abstract methods, which shall be overridden in non-abstract classes that derive from `C`.
+>
+> *end example*
 
 Explicit interface member implementations cannot be abstract, but explicit interface member implementations are of course permitted to call abstract methods.
 
 > *Example*:
+>
 > ```csharp
 > interface IMethods
 > {
@@ -1100,4 +1237,7 @@ Explicit interface member implementations cannot be abstract, but explicit inter
 >     protected abstract void GG();
 > }
 > ```
-> Here, non-abstract classes that derive from `C` would be required to override `FF` and `GG`, thus providing the actual implementation of `IMethods`. *end example*
+>
+> Here, non-abstract classes that derive from `C` would be required to override `FF` and `GG`, thus providing the actual implementation of `IMethods`.
+>
+> *end example*

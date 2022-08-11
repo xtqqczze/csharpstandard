@@ -5,7 +5,7 @@
 An ***enum type*** is a distinct value type ([§8.3](types.md#83-value-types)) that declares a set of named constants.
 
 > *Example:* The example
-> 
+>
 > ```csharp
 > enum Color
 > {
@@ -14,7 +14,10 @@ An ***enum type*** is a distinct value type ([§8.3](types.md#83-value-types)) t
 >     Blue
 > }
 > ```
-> declares an enum type named `Color` with members `Red`, `Green`, and `Blue`. *end example*
+>
+> declares an enum type named `Color` with members `Red`, `Green`, and `Blue`.
+>
+> *end example*
 
 ## 18.2 Enum declarations
 
@@ -47,7 +50,7 @@ Each enum type has a corresponding integral type called the ***underlying type**
 An enum declaration that does not explicitly declare an underlying type has an underlying type of `int`.
 
 > *Example*: The example
-> 
+>
 > ```csharp
 > enum Color: long
 > {
@@ -56,11 +59,20 @@ An enum declaration that does not explicitly declare an underlying type has an u
 >     Blue
 > }
 > ```
-> declares an enum with an underlying type of `long`. *end example*
+>
+> declares an enum with an underlying type of `long`.
+>
+> *end example*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Note*: A developer might choose to use an underlying type of `long`, as in the example, to enable the use of values that are in the range of `long` but not in the range of `int`, or to preserve this option for the future. *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Note*: C# allows a trailing comma in an *enum_body*, just like it allows one in an *array_initializer* ([§16.7](arrays.md#167-array-initializers)). *end note*
+
+An enum declaration cannot include a type parameter list, but any enum nested inside a generic class declaration or a generic struct declaration is a generic enum declaration, since type arguments for the containing type shall be supplied to create a constructed type ([§8.4](types.md#84-constructed-types)).
 
 ## 18.3 Enum modifiers
 
@@ -99,6 +111,7 @@ enum_member_declaration
 Each enum member has an associated constant value. The type of this value is the underlying type for the containing enum. The constant value for each enum member shall be in the range of the underlying type for the enum.
 
 > *Example*: The example
+>
 > ```csharp
 > enum Color: uint
 > {
@@ -107,11 +120,15 @@ Each enum member has an associated constant value. The type of this value is the
 >     Blue = -3
 > }
 > ```
-> results in a compile-time error because the constant values `-1`, `-2`, and `-3` are not in the range of the underlying integral type `uint`. *end example*
+>
+> results in a compile-time error because the constant values `-1`, `-2`, and `-3` are not in the range of the underlying integral type `uint`.
+>
+> *end example*
 
 Multiple enum members may share the same associated value.
 
 > *Example*: The example
+>
 > ```csharp
 > enum Color
 > {
@@ -121,14 +138,18 @@ Multiple enum members may share the same associated value.
 >     Max = Blue
 > }
 > ```
-> shows an enum in which two enum members—`Blue` and `Max`—have the same associated value. *end example*
+>
+> shows an enum in which two enum members—`Blue` and `Max`—have the same associated value.
+>
+> *end example*
 
 The associated value of an enum member is assigned either implicitly or explicitly. If the declaration of the enum member has a *constant_expression* initializer, the value of that constant expression, implicitly converted to the underlying type of the enum, is the associated value of the enum member. If the declaration of the enum member has no initializer, its associated value is set implicitly, as follows:
 
--   If the enum member is the first enum member declared in the enum type, its associated value is zero.
--   Otherwise, the associated value of the enum member is obtained by increasing the associated value of the textually preceding enum member by one. This increased value shall be within the range of values that can be represented by the underlying type, otherwise a compile-time error occurs.
+- If the enum member is the first enum member declared in the enum type, its associated value is zero.
+- Otherwise, the associated value of the enum member is obtained by increasing the associated value of the textually preceding enum member by one. This increased value shall be within the range of values that can be represented by the underlying type, otherwise a compile-time error occurs.
 
 > *Example*: The example
+>
 > ```csharp
 > using System;
 > enum Color
@@ -163,21 +184,27 @@ The associated value of an enum member is assigned either implicitly or explicit
 >    }
 > }
 > ```
+>
 > prints out the enum member names and their associated values. The output is:
+>
 > ```console
 > Red = 0
 > Green = 10
 > Blue = 11
 > ```
+>
 > for the following reasons:
-> -   the enum member `Red` is automatically assigned the value zero (since it has no initializer and is the first enum member);
-> -   the enum member `Green` is explicitly given the value `10`;
-> -   and the enum member `Blue` is automatically assigned the value one greater than the member that textually precedes it.
+>
+> - the enum member `Red` is automatically assigned the value zero (since it has no initializer and is the first enum member);
+> - the enum member `Green` is explicitly given the value `10`;
+> - and the enum member `Blue` is automatically assigned the value one greater than the member that textually precedes it.
+>
 > *end example*
 
 The associated value of an enum member may not, directly or indirectly, use the value of its own associated enum member. Other than this circularity restriction, enum member initializers may freely refer to other enum member initializers, regardless of their textual position. Within an enum member initializer, values of other enum members are always treated as having the type of their underlying type, so that casts are not necessary when referring to other enum members.
 
 > *Example*: The example
+>
 > ```csharp
 > enum Circular
 > {
@@ -185,7 +212,10 @@ The associated value of an enum member may not, directly or indirectly, use the 
 >     B
 > }
 > ```
-> results in a compile-time error because the declarations of `A` and `B` are circular. `A` depends on `B` explicitly, and `B` depends on `A` implicitly. *end example*
+>
+> results in a compile-time error because the declarations of `A` and `B` are circular. `A` depends on `B` explicitly, and `B` depends on `A` implicitly.
+>
+> *end example*
 
 Enum members are named and scoped in a manner exactly analogous to fields within classes. The scope of an enum member is the body of its containing enum type. Within that scope, enum members can be referred to by their simple name. From all other code, the name of an enum member shall be qualified with the name of its enum type. Enum members do not have any declared accessibility—an enum member is accessible if its containing enum type is accessible.
 
@@ -203,12 +233,12 @@ Enum members have the type of their containing enum type (except within other en
 
 The following operators can be used on values of enum types:
 
--   `==`, `!=`, `<`, `>`, `<=`, `>=` ([§11.11.6](expressions.md#11116-enumeration-comparison-operators))
--   binary `+` ([§11.9.5](expressions.md#1195-addition-operator))
--   binary `-` ([§11.9.6](expressions.md#1196-subtraction-operator))
--   `^`, `&`, `|` ([§11.12.3](expressions.md#11123-enumeration-logical-operators))
--   `~` ([§11.8.5](expressions.md#1185-bitwise-complement-operator))
--   `++`, `--` ([§11.7.14](expressions.md#11714-postfix-increment-and-decrement-operators) and [§11.8.6](expressions.md#1186-prefix-increment-and-decrement-operators))
--   `sizeof` ([§22.6.9](unsafe-code.md#2269-the-sizeof-operator))
+- `==`, `!=`, `<`, `>`, `<=`, `>=` ([§11.11.6](expressions.md#11116-enumeration-comparison-operators))
+- binary `+` ([§11.9.5](expressions.md#1195-addition-operator))
+- binary `-` ([§11.9.6](expressions.md#1196-subtraction-operator))
+- `^`, `&`, `|` ([§11.12.3](expressions.md#11123-enumeration-logical-operators))
+- `~` ([§11.8.5](expressions.md#1185-bitwise-complement-operator))
+- `++`, `--` ([§11.7.14](expressions.md#11714-postfix-increment-and-decrement-operators) and [§11.8.6](expressions.md#1186-prefix-increment-and-decrement-operators))
+- `sizeof` ([§22.6.9](unsafe-code.md#2269-the-sizeof-operator))
 
 Every enum type automatically derives from the class `System.Enum` (which, in turn, derives from `System.ValueType` and `object`). Thus, inherited methods and properties of this class can be used on values of an enum type.

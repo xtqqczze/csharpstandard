@@ -6,14 +6,16 @@ A C# ***program*** consists of one or more source files, known formally as ***c
 
 Conceptually speaking, a program is compiled using three steps:
 
-1.  Transformation, which converts a file from a particular character repertoire and encoding scheme into a sequence of Unicode characters.
-1.  Lexical analysis, which translates a stream of Unicode input characters into a stream of tokens.
-1.  Syntactic analysis, which translates the stream of tokens into executable code.
+1. Transformation, which converts a file from a particular character repertoire and encoding scheme into a sequence of Unicode characters.
+1. Lexical analysis, which translates a stream of Unicode input characters into a stream of tokens.
+1. Syntactic analysis, which translates the stream of tokens into executable code.
 
 Conforming implementations shall accept Unicode compilation units encoded with the UTF-8 encoding form (as defined by the Unicode standard), and transform them into a sequence of Unicode characters. Implementations can choose to accept and transform additional character encoding schemes (such as UTF-16, UTF-32, or non-Unicode character mappings).
 
 > *Note*: The handling of the Unicode NULL character (U+0000) is implementation-specific. It is strongly recommended that developers avoid using this character in their source code, for the sake of both portability and readability. When the character is required within a character or string literal, the escape sequences `\0` or `\u0000` may be used instead. *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Note*: It is beyond the scope of this standard to define how a file using a character representation other than Unicode might be transformed into a sequence of Unicode characters. During such transformation, however, it is recommended that the usual line-separating character (or sequence) in the other character set be translated to the two-character sequence consisting of the Unicode carriage-return character (U+000D) followed by Unicode line-feed character (U+000A). For the most part this transformation will have no visible effects; however, it will affect the interpretation of verbatim string literal tokens ([§6.4.5.6](lexical-structure.md#6456-string-literals)). The purpose of this recommendation is to allow a verbatim string literal to produce the same character sequence when its compilation unit is moved between systems that support differing non-Unicode character sets, in particular, those using differing character sequences for line-separation.  *end note*
 
 ## 6.2 Grammars
@@ -26,13 +28,13 @@ All terminal characters are to be understood as the appropriate Unicode characte
 
 ### 6.2.2 Grammar notation
 
-The lexical and syntactic grammars are presented in the ANTLR grammar tool's Extended Backus-Naur form.
+The lexical and syntactic grammars are presented in the ANTLR grammar tool’s Extended Backus-Naur form.
 
-While the ANTLR notation is used, this Standard does not present a complete ANTLR-ready "reference grammar" for C#; writing a lexer and parser, either by hand or using a tool such as ANTLR, is outside the scope of a language specification. With that qualification, this Standard attempts to minimize the gap between the specified grammar and that required to build a lexer and parser in ANTLR.
+While the ANTLR notation is used, this Standard does not present a complete ANTLR-ready “reference grammar” for C#; writing a lexer and parser, either by hand or using a tool such as ANTLR, is outside the scope of a language specification. With that qualification, this Standard attempts to minimize the gap between the specified grammar and that required to build a lexer and parser in ANTLR.
 
 ANTLR distinguishes between lexical and syntactic, termed parser by ANTLR, grammars in its notation by starting lexical rules with an uppercase letter and parser rules with a lowercase letter.
 
-> *Note*: The C# lexical grammar ([§6.2.3](lexical-structure.md#623-lexical-grammar)) and syntactic grammar ([§6.2.4](lexical-structure.md#624-syntactic-grammar)) are not in exact correspondence with the ANTLR division into lexical and parser grammers. This small mismatch means that some ANTLR parser rules are used when specifying the C# lexical grammar. *end note* 
+> *Note*: The C# lexical grammar ([§6.2.3](lexical-structure.md#623-lexical-grammar)) and syntactic grammar ([§6.2.4](lexical-structure.md#624-syntactic-grammar)) are not in exact correspondence with the ANTLR division into lexical and parser grammers. This small mismatch means that some ANTLR parser rules are used when specifying the C# lexical grammar. *end note*
 
 ### 6.2.3 Lexical grammar
 
@@ -53,11 +55,14 @@ Every compilation unit in a C# program shall conform to the *compilation_unit* 
 The productions for *simple_name* ([§11.7.4](expressions.md#1174-simple-names)) and *member_access* ([§11.7.6](expressions.md#1176-member-access)) can give rise to ambiguities in the grammar for expressions.
 
 > *Example*: The statement:
-> 
+>
 > ```csharp
 > F(G<A, B>(7));
 > ```
-> could be interpreted as a call to `F` with two arguments, `G < A` and `B > (7)`. Alternatively, it could be interpreted as a call to `F` with one argument, which is a call to a generic method `G` with two type arguments and one regular argument. *end example*
+>
+> could be interpreted as a call to `F` with two arguments, `G < A` and `B > (7)`. Alternatively, it could be interpreted as a call to `F` with one argument, which is a call to a generic method `G` with two type arguments and one regular argument.
+>
+> *end example*
 
 If a sequence of tokens can be parsed (in context) as a *simple_name* ([§11.7.4](expressions.md#1174-simple-names)), *member_access* ([§11.7.6](expressions.md#1176-member-access)), or *pointer_member_access* ([§22.6.3](unsafe-code.md#2263-pointer-member-access)) ending with a *type_argument_list* ([§8.4.2](types.md#842-type-arguments)), the token immediately following the closing `>` token is examined. If it is one of
 
@@ -68,25 +73,37 @@ If a sequence of tokens can be parsed (in context) as a *simple_name* ([§11.7.4
 then the *type_argument_list* is retained as part of the *simple_name*, *member_access*, or *pointer_member_access* and any other possible parse of the sequence of tokens is discarded. Otherwise, the *type_argument_list* is not considered part of the *simple_name*, *member_access*, or *pointer_member_access*, even if there is no other possible parse of the sequence of tokens.
 
 > *Note*: These rules are not applied when parsing a *type_argument_list* in a *namespace_or_type_name* ([§7.8](basic-concepts.md#78-namespace-and-type-names)). *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: The statement:
+>
 > ```csharp
 > F(G<A, B>(7));
 > ```
+>
 > will, according to this rule, be interpreted as a call to `F` with one argument, which is a call to a generic method `G` with two type arguments and one regular argument. The statements
+>
 > ```csharp
 > F(G<A, B>7);
 > F(G<A, B>>7);
 > ```
+>
 > will each be interpreted as a call to `F` with two arguments. The statement
+>
 > ```csharp
 > x = F<A> + y;
 > ```
+>
 > will be interpreted as a less-than operator, greater-than operator and unary-plus operator, as if the statement had been written `x = (F < A) > (+y)`, instead of as a *simple_name* with a *type_argument_list* followed by a binary-plus operator. In the statement
+>
 > ```csharp
 > x = y is C<T> && z;
 > ```
-> the tokens `C<T>` are interpreted as a *namespace_or_type_name* with a *type_argument_list* due to being on the right-hand side of the `is` operator ([§11.11.1](expressions.md#11111-general)). Because `C<T>` parses as a *namespace_or_type_name*, not a *simple_name*, *member_access*, or *pointer_member_access*, the above rule does not apply, and it is considered to have a *type_argument_list* regardless of the token that follows. *end example*
+>
+> the tokens `C<T>` are interpreted as a *namespace_or_type_name* with a *type_argument_list* due to being on the right-hand side of the `is` operator ([§11.11.1](expressions.md#11111-general)). Because `C<T>` parses as a *namespace_or_type_name*, not a *simple_name*, *member_access*, or *pointer_member_access*, the above rule does not apply, and it is considered to have a *type_argument_list* regardless of the token that follows.
+>
+> *end example*
 
 ## 6.3 Lexical analysis
 
@@ -157,8 +174,8 @@ New_Line
 
 For compatibility with source code editing tools that add end-of-file markers, and to enable a compilation unit to be viewed as a sequence of properly terminated lines, the following transformations are applied, in order, to every compilation unit in a C# program:
 
--   If the last character of the compilation unit is a Control-Z character (U+001A), this character is deleted.
--   A carriage-return character (U+000D) is added to the end of the compilation unit if that compilation unit is non-empty and if the last character of the compilation unit is not a carriage return (U+000D), a line feed (U+000A), a next line character (U+0085), a line separator (U+2028), or a paragraph separator (U+2029). 
+- If the last character of the compilation unit is a Control-Z character (U+001A), this character is deleted.
+- A carriage-return character (U+000D) is added to the end of the compilation unit if that compilation unit is non-empty and if the last character of the compilation unit is not a carriage return (U+000D), a line feed (U+000A), a next line character (U+0085), a line separator (U+2028), or a paragraph separator (U+2029).
 
 > *Note*: The additional carriage-return allows a program to end in a *PP_Directive* ([§6.5](lexical-structure.md#65-pre-processing-directives)) that does not have a terminating *New_Line*. *end note*
 
@@ -169,6 +186,7 @@ Two forms of comments are supported: delimited comments and single-line comments
 A ***delimited comment*** begins with the characters `/*` and ends with the characters `*/`. Delimited comments can occupy a portion of a line, a single line, or multiple lines.
 
 > *Example*: The example
+>
 > ```csharp
 > /* Hello, world program
 >    This program writes "hello, world" to the console
@@ -181,11 +199,15 @@ A ***delimited comment*** begins with the characters `/*` and ends with the cha
 >     }
 > }
 > ```
-> includes a delimited comment. *end example*
+>
+> includes a delimited comment.
+>
+> *end example*
 
 A ***single-line comment*** begins with the characters `//` and extends to the end of the line.
 
 > *Example*: The example
+>
 > ```csharp
 > // Hello, world program
 > // This program writes "hello, world" to the console
@@ -198,7 +220,10 @@ A ***single-line comment*** begins with the characters `//` and extends to the 
 >     }
 > }
 > ```
-> shows several single-line comments. *end example*
+>
+> shows several single-line comments.
+>
+> *end example*
 
 ```ANTLR
 Comment
@@ -211,7 +236,8 @@ fragment Single_Line_Comment
     ;
 
 fragment Input_Character
-    : ~('\u000D' | '\u000A'   | '\u0085' | '\u2028' | '\u2029')   // anything but New_Line_Character
+    // anything but New_Line_Character
+    : ~('\u000D' | '\u000A'   | '\u0085' | '\u2028' | '\u2029')
     ;
     
 fragment New_Line_Character
@@ -241,16 +267,19 @@ Comments do not nest. The character sequences `/*` and `*/` have no special me
 Comments are not processed within character and string literals.
 
 > *Note*: These rules must be interpreted carefully. For instance, in the example below, the delimited comment that begins before `A` ends between `B` and `C()`. The reason is that
+>
 > ```csharp
 > // B */ C();
 > ```
+>
 > is not actually a single-line comment, since `//` has no special meaning within a delimited comment, and so `*/` does have its usual special meaning in that line.
-> 
+>
 > Likewise, the delimited comment starting before `D` ends before `E`. The reason is that `"D */ "` is not actually a string literal, since it appears inside a delimited comment.
-> 
+>
 > A useful consequence of `/*` and `*/` having no special meaning within a single-line comment is that a block of source code lines can be commented out by putting `//` at the beginning of each line. In general it does not work to put `/*` before those lines and `*/` after them, as this does not properly encapsulate delimited comments in the block, and in general may completely change the structure of such delimited comments.
-> 
+>
 > Example code:
+>
 > ```csharp
 > static void Main()
 > {
@@ -259,6 +288,7 @@ Comments are not processed within character and string literals.
 >     Console.WriteLine(/* "D */ "E");
 > }
 > ```
+>
 > *end note*
 
 *Single_Line_Comment*s and *Delimited_Comment*s having particular formats can be used as *documentation comments*, as described in [§D](documentation-comments.md#annex-d-documentation-comments).
@@ -275,6 +305,7 @@ Whitespace
     | '\u000C'  // form feed
     ;
 ```
+
 ## 6.4 Tokens
 
 ### 6.4.1 General
@@ -302,17 +333,21 @@ A Unicode escape sequence represents a Unicode code point. Unicode escape sequen
 ```ANTLR
 fragment Unicode_Escape_Sequence
     : '\\u' Hex_Digit Hex_Digit Hex_Digit Hex_Digit
-    | '\\U' Hex_Digit Hex_Digit Hex_Digit Hex_Digit Hex_Digit Hex_Digit Hex_Digit Hex_Digit
+    | '\\U' Hex_Digit Hex_Digit Hex_Digit Hex_Digit
+            Hex_Digit Hex_Digit Hex_Digit Hex_Digit
     ;
 ```
 
-A Unicode character escape sequence represents the single Unicode code point formed by the hexadecimal number following the "\u" or "\U" characters. Since C# uses a 16-bit encoding of Unicode code points in character and string values, a Unicode code point in the range `U+10000` to `U+10FFFF` is represented using two Unicode surrogate code units. Unicode code points above `U+FFFF` are not permitted in character literals. Unicode code points above` U+10FFFF` are invalid and are not supported.
+A Unicode character escape sequence represents the single Unicode code point formed by the hexadecimal number following the “\u” or “\U” characters. Since C# uses a 16-bit encoding of Unicode code points in character and string values, a Unicode code point in the range `U+10000` to `U+10FFFF` is represented using two Unicode surrogate code units. Unicode code points above `U+FFFF` are not permitted in character literals. Unicode code points above `U+10FFFF` are invalid and are not supported.
 
 Multiple translations are not performed. For instance, the string literal `"\u005Cu005C"` is equivalent to `"\u005C"` rather than `"\"`.
 
-> *Note*: The Unicode value `\u005C` is the character "`\`". *end note*
+> *Note*: The Unicode value `\u005C` is the character “`\`”. *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: The example
+>
 > ```csharp
 > class Class1
 > {
@@ -326,7 +361,9 @@ Multiple translations are not performed. For instance, the string literal `"\u00
 >     }
 > }
 > ```
-> shows several uses of `\u0066`, which is the escape sequence for the letter "`f`". The program is equivalent to
+>
+> shows several uses of `\u0066`, which is the escape sequence for the letter “`f`”. The program is equivalent to
+>
 > ```csharp
 > class Class1
 > {
@@ -340,11 +377,12 @@ Multiple translations are not performed. For instance, the string literal `"\u00
 >     }
 > }
 > ```
+>
 > *end example*
 
 ### 6.4.3 Identifiers
 
-The rules for identifiers given in this subclause correspond exactly to those recommended by the Unicode Standard Annex 15 except that underscore is allowed as an initial character (as is traditional in the C programming language), Unicode escape sequences are permitted in identifiers, and the "`@`" character is allowed as a prefix to enable keywords to be used as identifiers.
+The rules for identifiers given in this subclause correspond exactly to those recommended by the Unicode Standard Annex 15 except that underscore is allowed as an initial character (as is traditional in the C programming language), Unicode escape sequences are permitted in identifiers, and the “`@`” character is allowed as a prefix to enable keywords to be used as identifiers.
 
 ```ANTLR
 identifier
@@ -358,12 +396,14 @@ Simple_Identifier
     ;
 
 fragment Available_Identifier
-    : Basic_Identifier     // excluding keywords or contextual keywords, see note below
+    // excluding keywords or contextual keywords, see note below
+    : Basic_Identifier
     ;
 
 fragment Escaped_Identifier
-    : '@' Basic_Identifier // includes keywords and contextual keywords prefixed by '@',
-                           // see note below
+    // Includes keywords and contextual keywords prefixed by '@'.
+    // See note below.
+    : '@' Basic_Identifier 
     ;
 
 fragment Basic_Identifier
@@ -389,56 +429,68 @@ fragment Identifier_Part_Character
     ;
 
 fragment Letter_Character
-    : [\p{L}\p{Nl}]           // category Letter, all subcategories; category Number, subcategory letter
-    | Unicode_Escape_Sequence // only escapes for categories L & Nl allowed, see note below
+    // Category Letter, all subcategories; category Number, subcategory letter.
+    : [\p{L}\p{Nl}]
+    // Only escapes for categories L & Nl allowed. See note below.
+    | Unicode_Escape_Sequence
     ;
 
 fragment Combining_Character
-    : [\p{Mn}\p{Mc}]          // category Mark, subcategories non-spacing and spacing combining
-    | Unicode_Escape_Sequence // only escapes for categories Mn & Mc allowed, see note below
+    // Category Mark, subcategories non-spacing and spacing combining.
+    : [\p{Mn}\p{Mc}]
+    // Only escapes for categories Mn & Mc allowed. See note below.
+    | Unicode_Escape_Sequence
     ;
 
 fragment Decimal_Digit_Character
-    : [\p{Nd}]                // category Number, subcategory decimal digit
-    | Unicode_Escape_Sequence // only escapes for category Nd allowed, see note below
+    // Category Number, subcategory decimal digit.
+    : [\p{Nd}]
+    // Only escapes for category Nd allowed. See note below.
+    | Unicode_Escape_Sequence
     ;
 
 fragment Connecting_Character
-    : [\p{Pc}]                // category Punctuation, subcategory connector
-    | Unicode_Escape_Sequence // only escapes for category Pc allowed, see note below
+    // Category Punctuation, subcategory connector.
+    : [\p{Pc}]
+    // Only escapes for category Pc allowed. See note below.
+    | Unicode_Escape_Sequence
     ;
 
 fragment Formatting_Character
-    : [\p{Cf}]                // category Other, subcategory format
-    | Unicode_Escape_Sequence // only escapes for category Cf allowed, see note below
+    // Category Other, subcategory format.
+    : [\p{Cf}]
+    // Only escapes for category Cf allowed, see note below.
+    | Unicode_Escape_Sequence
     ;
 ```
 
 > *Note*:
-
-> 1. For information on the Unicode character classes mentioned above, see *The Unicode Standard*.
-
-> 2. The fragment *Available_Identifier* requires the exclusion of keywords and contextual keywords. If the grammar in this Standard is processed with ANTLR then this exclusion is handled automatically by the semantics of ANTLR:
->    - Keywords and contextual keywords occur in the grammar as literal strings.
->    - ANTLR creates implicit lexical token rules are created from these literal strings.
->    - ANTLR considers these implicit rules before the explicit lexical rules in the grammar.
->    - Therefore fragment *Available_Identifier* will not match keywords or contextual keywords as the lexical rules for those precede it.
-
-> 3. Fragment *Escaped_Identifier* includes escaped keywords and contextual keywords as they are part of the longer token starting with an `@` and lexical processing always forms the longest possible lexical element ([§6.3.1](lexical-structure.md#631-general)).
-
-> 4. How an implementation enforces the restrictions on the allowable *Unicode_Escape_Sequence* values is an implementation issue.
-
+>
+> - For information on the Unicode character classes mentioned above, see *The Unicode Standard*.
+> - The fragment *Available_Identifier* requires the exclusion of keywords and contextual keywords. If the grammar in this Standard is processed with ANTLR then this exclusion is handled automatically by the semantics of ANTLR:
+>   - Keywords and contextual keywords occur in the grammar as literal strings.
+>   - ANTLR creates implicit lexical token rules are created from these literal strings.
+>   - ANTLR considers these implicit rules before the explicit lexical rules in the grammar.
+>   - Therefore fragment *Available_Identifier* will not match keywords or contextual keywords as the lexical rules for those precede it.
+> - Fragment *Escaped_Identifier* includes escaped keywords and contextual keywords as they are part of the longer token starting with an `@` and lexical processing always forms the longest possible lexical element ([§6.3.1](lexical-structure.md#631-general)).
+> - How an implementation enforces the restrictions on the allowable *Unicode_Escape_Sequence* values is an implementation issue.
+>
 > *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: Examples of valid identifiers are `identifier1`, `_identifier2`, and `@if`. *end example*
 
 An identifier in a conforming program shall be in the canonical format defined by Unicode Normalization Form C, as defined by Unicode Standard Annex 15. The behavior when encountering an identifier not in Normalization Form C is implementation-defined; however, a diagnostic is not required.
 
-The prefix "`@`" enables the use of keywords as identifiers, which is useful when interfacing with other programming languages. The character `@` is not actually part of the identifier, so the identifier might be seen in other languages as a normal identifier, without the prefix. An identifier with an `@` prefix is called a ***verbatim identifier***. 
+The prefix “`@`” enables the use of keywords as identifiers, which is useful when interfacing with other programming languages. The character `@` is not actually part of the identifier, so the identifier might be seen in other languages as a normal identifier, without the prefix. An identifier with an `@` prefix is called a ***verbatim identifier***.
 
 > *Note*:  Use of the `@` prefix for identifiers that are not keywords is permitted, but strongly discouraged as a matter of style. *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: The example:
+>
 > ```csharp
 > class @class
 > {
@@ -463,13 +515,16 @@ The prefix "`@`" enables the use of keywords as identifiers, which is useful wh
 >     }
 > }
 > ```
-> defines a class named "`class`" with a static method named "`static`" that takes a parameter named "`bool`". Note that since Unicode escapes are not permitted in keywords, the token "`cl\u0061ss`" is an identifier, and is the same identifier as "`@class`". *end example*
+>
+> defines a class named “`class`” with a static method named “`static`” that takes a parameter named “`bool`”. Note that since Unicode escapes are not permitted in keywords, the token “`cl\u0061ss`” is an identifier, and is the same identifier as “`@class`”.
+>
+> *end example*
 
 Two identifiers are considered the same if they are identical after the following transformations are applied, in order:
 
--   The prefix "`@`", if used, is removed.
--   Each *Unicode_Escape_Sequence* is transformed into its corresponding Unicode character.
--   Any *Formatting_Character*s are removed.
+- The prefix “`@`”, if used, is removed.
+- Each *Unicode_Escape_Sequence* is transformed into its corresponding Unicode character.
+- Any *Formatting_Character*s are removed.
 
 Identifiers containing two consecutive underscore characters (`U+005F`) are reserved for use by the implementation; however, no diagnostic is required if such an identifier is defined.
 
@@ -544,7 +599,6 @@ literal
 
 > *Note*: *literal* is a parser rule as it groups other token kinds and does not introduce a new token kind. *end note*
 
-
 #### 6.4.5.2 Boolean literals
 
 There are two Boolean literal values: `true` and `false`.
@@ -579,7 +633,8 @@ fragment Decimal_Digit
     ;
     
 fragment Integer_Type_Suffix
-    : 'U' | 'u' | 'L' | 'l' | 'UL' | 'Ul' | 'uL' | 'ul' | 'LU' | 'Lu' | 'lU' | 'lu'
+    : 'U' | 'u' | 'L' | 'l' |
+      'UL' | 'Ul' | 'uL' | 'ul' | 'LU' | 'Lu' | 'lU' | 'lu'
     ;
     
 fragment Hexadecimal_Integer_Literal
@@ -593,19 +648,19 @@ fragment Hex_Digit
 
 The type of an integer literal is determined as follows:
 
--   If the literal has no suffix, it has the first of these types in which its value can be represented: `int`, `uint`, `long`, `ulong`.
--   If the literal is suffixed by `U` or `u`, it has the first of these types in which its value can be represented: `uint`, `ulong`.
--   If the literal is suffixed by `L` or `l`, it has the first of these types in which its value can be represented: `long`, `ulong`.
--   If the literal is suffixed by `UL`, `Ul`, `uL`, `ul`, `LU`, `Lu`, `lU`, or `lu`, it is of type `ulong`.
+- If the literal has no suffix, it has the first of these types in which its value can be represented: `int`, `uint`, `long`, `ulong`.
+- If the literal is suffixed by `U` or `u`, it has the first of these types in which its value can be represented: `uint`, `ulong`.
+- If the literal is suffixed by `L` or `l`, it has the first of these types in which its value can be represented: `long`, `ulong`.
+- If the literal is suffixed by `UL`, `Ul`, `uL`, `ul`, `LU`, `Lu`, `lU`, or `lu`, it is of type `ulong`.
 
 If the value represented by an integer literal is outside the range of the `ulong` type, a compile-time error occurs.
 
-> *Note*: As a matter of style, it is suggested that "`L`" be used instead of "`l`" when writing literals of type `long`, since it is easy to confuse the letter "`l`" with the digit "`1`". *end note*
+> *Note*: As a matter of style, it is suggested that “`L`” be used instead of “`l`” when writing literals of type `long`, since it is easy to confuse the letter “`l`” with the digit “`1`”. *end note*
 
 To permit the smallest possible `int` and `long` values to be written as integer literals, the following two rules exist:
 
--   When an *Integer_Literal* representing the value `2147483648` (2³¹) and no *Integer_Type_Suffix* appears as the token immediately following a unary minus operator token ([§11.8.3](expressions.md#1183-unary-minus-operator)), the result (of both tokens) is a constant of type int with the value `−2147483648` (−2³¹). In all other situations, such an *Integer_Literal* is of type `uint`.
--   When an *Integer_Literal* representing the value `9223372036854775808` (2⁶³) and no *Integer_Type_Suffix* or the *Integer_Type_Suffix* `L` or `l` appears as the token immediately following a unary minus operator token ([§11.8.3](expressions.md#1183-unary-minus-operator)), the result (of both tokens) is a constant of type `long` with the value `−9223372036854775808` (−2⁶³). In all other situations, such an *Integer_Literal* is of type `ulong`.
+- When an *Integer_Literal* representing the value `2147483648` (2³¹) and no *Integer_Type_Suffix* appears as the token immediately following a unary minus operator token ([§11.8.3](expressions.md#1183-unary-minus-operator)), the result (of both tokens) is a constant of type int with the value `−2147483648` (−2³¹). In all other situations, such an *Integer_Literal* is of type `uint`.
+- When an *Integer_Literal* representing the value `9223372036854775808` (2⁶³) and no *Integer_Type_Suffix* or the *Integer_Type_Suffix* `L` or `l` appears as the token immediately following a unary minus operator token ([§11.8.3](expressions.md#1183-unary-minus-operator)), the result (of both tokens) is a constant of type `long` with the value `−9223372036854775808` (−2⁶³). In all other situations, such an *Integer_Literal* is of type `ulong`.
 
 #### 6.4.5.4 Real literals
 
@@ -630,7 +685,7 @@ fragment Sign
 fragment Real_Type_Suffix
     : 'F' | 'f' | 'D' | 'd' | 'M' | 'm'
     ;
-```    
+```
 
 If no *Real_Type_Suffix* is specified, the type of the *Real_Literal* is `double`. Otherwise, the *Real_Type_Suffix* determines the type of the real literal, as follows:
 
@@ -640,14 +695,14 @@ If no *Real_Type_Suffix* is specified, the type of the *Real_Literal* is `double
   > *Example*: The literals `1d`, `1.5d`, `1e10d`, and `123.456D` are all of type `double`. *end example*
 - A real literal suffixed by `M` or `m` is of type `decimal`.
   > *Example*: The literals `1m`, `1.5m`, `1e10m`, and `123.456M` are all of type `decimal`. *end example*  
-  This literal is converted to a `decimal` value by taking the exact value, and, if necessary, rounding to the nearest representable value using banker's rounding ([§8.3.8](types.md#838-the-decimal-type)). Any scale apparent in the literal is preserved unless the value is rounded. 
+  This literal is converted to a `decimal` value by taking the exact value, and, if necessary, rounding to the nearest representable value using banker’s rounding ([§8.3.8](types.md#838-the-decimal-type)). Any scale apparent in the literal is preserved unless the value is rounded.
   > *Note*: Hence, the literal `2.900m` will be parsed to form the `decimal` with sign `0`, coefficient `2900`, and scale `3`. *end note*
 
 If the magnitude of the specified literal is too large to be represented in the indicated type, a compile-time error occurs.
 
 > *Note*: In particular, a *Real_Literal* will never produce a floating-point infinity. A non-zero *Real_Literal* may, however, be rounded to zero. *end note*
 
-The value of a real literal of type `float` or `double` is determined by using the IEC 60559 "round to nearest" mode with ties broken to "even" (a value with the least-significant-bit zero), and all digits considered significant.
+The value of a real literal of type `float` or `double` is determined by using the IEC 60559 “round to nearest” mode with ties broken to “even” (a value with the least-significant-bit zero), and all digits considered significant.
 
 > *Note*: In a real literal, decimal digits are always required after the decimal point. For example, `1.3F` is a real literal but `1.F` is not. *end note*
 
@@ -668,11 +723,13 @@ fragment Character
     ;
     
 fragment Single_Character
-    : ~['\\\u000D\u000A\u0085\u2028\u2029]     // anything but ', \, and New_Line_Character
+    // anything but ', \, and New_Line_Character
+    : ~['\\\u000D\u000A\u0085\u2028\u2029]
     ;
     
 fragment Simple_Escape_Sequence
-    : '\\\'' | '\\"' | '\\\\' | '\\0' | '\\a' | '\\b' | '\\f' | '\\n' | '\\r' | '\\t' | '\\v'
+    : '\\\'' | '\\"' | '\\\\' | '\\0' | '\\a' | '\\b' |
+      '\\f' | '\\n' | '\\r' | '\\t' | '\\v'
     ;
     
 fragment Hexadecimal_Escape_Sequence
@@ -681,15 +738,21 @@ fragment Hexadecimal_Escape_Sequence
 ```
 
 > *Note*: A character that follows a backslash character (`\`) in a *Character* must be one of the following characters: `'`, `"`, `\`, `0`, `a`, `b`, `f`, `n`, `r`, `t`, `u`, `U`, `x`, `v`. Otherwise, a compile-time error occurs. *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Note*: The use of the `\x` *Hexadecimal_Escape_Sequence* production can be error-prone and hard to read due to the variable number of hexadecimal digits following the `\x`. For example, in the code:
+>
 > ```csharp
 > string good = "x9Good text";
 > string bad = "x9Bad text";
 > ```
-> it might appear at first that the leading character is the same (`U+0009`, a tab character) in both strings. In fact the second string starts with `U+9BAD` as all three letters in the word "Bad" are valid hexadecimal digits. As a matter of style, it is recommended that `\x` is avoided in favour of either specific escape sequences (`\t` in this example) or the fixed-length `\u` escape sequence. *end note*
+>
+> it might appear at first that the leading character is the same (`U+0009`, a tab character) in both strings. In fact the second string starts with `U+9BAD` as all three letters in the word “Bad” are valid hexadecimal digits. As a matter of style, it is recommended that `\x` is avoided in favour of either specific escape sequences (`\t` in this example) or the fixed-length `\u` escape sequence.
+>
+> *end note*
 
-A hexadecimal escape sequence represents a single Unicode UTF-16 code unit, with the value formed by the hexadecimal number following "`\x`".
+A hexadecimal escape sequence represents a single Unicode UTF-16 code unit, with the value formed by the hexadecimal number following “`\x`”.
 
 If the value represented by a character literal is greater than `U+FFFF`, a compile-time error occurs.
 
@@ -697,19 +760,19 @@ A Unicode escape sequence ([§6.4.2](lexical-structure.md#642-unicode-character-
 
 A simple escape sequence represents a Unicode character, as described in the table below.
 
-| __Escape sequence__ | __Character name__ | __Unicode code point__ |
-|---------------------|--------------------|----------------------|
-| `\'`                | Single quote       | U+0027             | 
-| `\"`                | Double quote       | U+0022             | 
-| `\\`                | Backslash          | U+005C             | 
-| `\0`                | Null               | U+0000             | 
-| `\a`                | Alert              | U+0007             | 
-| `\b`                | Backspace          | U+0008             | 
-| `\f`                | Form feed          | U+000C             | 
-| `\n`                | New line           | U+000A             | 
-| `\r`                | Carriage return    | U+000D             | 
-| `\t`                | Horizontal tab     | U+0009             | 
-| `\v`                | Vertical tab       | U+000B             | 
+| **Escape sequence** | **Character name** | **Unicode code point** |
+|---------------------|--------------------|--------------------|
+| `\'`                | Single quote       | U+0027             |
+| `\"`                | Double quote       | U+0022             |
+| `\\`                | Backslash          | U+005C             |
+| `\0`                | Null               | U+0000             |
+| `\a`                | Alert              | U+0007             |
+| `\b`                | Backspace          | U+0008             |
+| `\f`                | Form feed          | U+000C             |
+| `\n`                | New line           | U+000A             |
+| `\r`                | Carriage return    | U+000D             |
+| `\t`                | Horizontal tab     | U+0009             |
+| `\v`                | Vertical tab       | U+000B             |
 
 The type of a *Character_Literal* is `char`.
 
@@ -741,7 +804,8 @@ fragment Regular_String_Literal_Character
     ;
 
 fragment Single_Regular_String_Literal_Character
-    : ~["\\\u000D\u000A\u0085\u2028\u2029]     // anything but ", \, and New_Line_Character
+    // anything but ", \, and New_Line_Character
+    : ~["\\\u000D\u000A\u0085\u2028\u2029]
     ;
 
 fragment Verbatim_String_Literal
@@ -763,6 +827,7 @@ fragment Quote_Escape_Sequence
 ```
 
 > *Example*: The example
+>
 > ```csharp
 > string a = "Happy birthday, Joel"; // Happy birthday, Joel
 > string b = @"Happy birthday, Joel"; // Happy birthday, Joel
@@ -777,10 +842,17 @@ fragment Quote_Escape_Sequence
 > two
 > three";
 > ```
-> shows a variety of string literals. The last string literal, `j`, is a verbatim string literal that spans multiple lines. The characters between the quotation marks, including white space such as new line characters, are preserved verbatim, and each pair of double-quote characters is replaced by one such character. *end example*
+>
+> shows a variety of string literals. The last string literal, `j`, is a verbatim string literal that spans multiple lines. The characters between the quotation marks, including white space such as new line characters, are preserved verbatim, and each pair of double-quote characters is replaced by one such character.
+>
+> *end example*
+<!-- markdownlint-disable MD028 -->
 
-> *Note*: Any line breaks within verbatim string literals are part of the resulting string. If the exact characters used to form line breaks are semantically relevant to an application, any tools that translate line breaks in source code to different formats (between "`\n`" and "`\r\n`", for example) will change application behavior. Developers should be careful in such situations. *end note*
+<!-- markdownlint-enable MD028 -->
+> *Note*: Any line breaks within verbatim string literals are part of the resulting string. If the exact characters used to form line breaks are semantically relevant to an application, any tools that translate line breaks in source code to different formats (between “`\n`” and “`\r\n`”, for example) will change application behavior. Developers should be careful in such situations. *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Note*: Since a hexadecimal escape sequence can have a variable number of hex digits, the string literal `"\x123"` contains a single character with hex value `123`. To create a string containing the character with hex value `12` followed by the character `3`, one could write `"\x00123"` or `"\x12"` + `"3"` instead. *end note*
 
 The type of a *String_Literal* is `string`.
@@ -788,6 +860,7 @@ The type of a *String_Literal* is `string`.
 Each string literal does not necessarily result in a new string instance. When two or more string literals that are equivalent according to the string equality operator ([§11.11.8](expressions.md#11118-string-equality-operators)), appear in the same assembly, these string literals refer to the same string instance.
 
 > *Example*: For instance, the output produced by
+>
 > ```csharp
 > class Test
 > {
@@ -799,7 +872,10 @@ Each string literal does not necessarily result in a new string instance. When t
 >     }
 > }
 > ```
-> is `True` because the two literals refer to the same string instance. *end example*
+>
+> is `True` because the two literals refer to the same string instance.
+>
+> *end example*
 
 #### 6.4.5.7 The null literal
 
@@ -824,7 +900,7 @@ Punctuators are for grouping and separating.
 ```ANTLR
 operator_or_punctuator
     : '{'  | '}'  | '['  | ']'  | '('   | ')'  | '.'  | ','  | ':'  | ';'
-    | '+'  | '-'  | ASTERISK    | SLASH | '%'  | '&'  | '|'  | '^'  | '!'  | '~'
+    | '+'  | '-'  | ASTERISK    | SLASH | '%'  | '&'  | '|'  | '^'  | '!' | '~'
     | '='  | '<'  | '>'  | '?'  | '??'  | '::' | '++' | '--' | '&&' | '||'
     | '->' | '==' | '!=' | '<=' | '>='  | '+=' | '-=' | '*=' | '/=' | '%='
     | '&=' | '|=' | '^=' | '<<' | '<<=' | '=>'
@@ -841,9 +917,9 @@ right_shift_assignment
 
 > *Note*: *right_shift* and *right_shift_assignment* are parser rules as they do not introduce a new token kind but represent a sequence of two tokens. The *operator_or_punctuator* rule exists for descriptive purposes only and is not used elsewhere in the grammar. *end note*
 
-*right_shift* is made up of the two tokens `>` and `>`. Similarly, *right_shift_assignment* is made up of the two tokens `>` and `>=`. Unlike other productions in the syntactic grammar, no characters of any kind (not even whitespace) are allowed between the two tokens in each of these productions. These productions are treated specially in order to enable the correct handling of *type_parameter_lists* ([§14.2.3](classes.md#1423-type-parameters)). 
+*right_shift* is made up of the two tokens `>` and `>`. Similarly, *right_shift_assignment* is made up of the two tokens `>` and `>=`. Unlike other productions in the syntactic grammar, no characters of any kind (not even whitespace) are allowed between the two tokens in each of these productions. These productions are treated specially in order to enable the correct handling of *type_parameter_lists* ([§14.2.3](classes.md#1423-type-parameters)).
 
-> *Note*: Prior to the addition of generics to C#, `>>` and `>>=` were both single tokens. However, the syntax for generics uses the `<` and `>` characters to delimit type parameters and type arguments. It is often desirable to use nested constructed types, such as `List<Dictionary<string, int>>`. Rather than requiring the programmer to separate the `>` and `>` by a space, the definition of the two *operator_or_punctuator*s was changed.
+> *Note*: Prior to the addition of generics to C#, `>>` and `>>=` were both single tokens. However, the syntax for generics uses the `<` and `>` characters to delimit type parameters and type arguments. It is often desirable to use nested constructed types, such as `List<Dictionary<string, int>>`. Rather than requiring the programmer to separate the `>` and `>` by a space, the definition of the two *operator_or_punctuator*s was changed. *end note*
 
 ## 6.5 Pre-processing directives
 
@@ -851,7 +927,7 @@ right_shift_assignment
 
 The pre-processing directives provide the ability to skip conditionally sections of compilation units, to report error and warning conditions, and to delineate distinct regions of source code.
 
-> *Note*: The term "pre-processing directives" is used only for consistency with the C and C++ programming languages. In C#, there is no separate pre-processing step; pre-processing directives are processed as part of the lexical analysis phase. *end note*
+> *Note*: The term “pre-processing directives” is used only for consistency with the C and C++ programming languages. In C#, there is no separate pre-processing step; pre-processing directives are processed as part of the lexical analysis phase. *end note*
 
 ```ANTLR
 PP_Directive
@@ -869,7 +945,8 @@ fragment PP_Kind
 
 // Only recognised at the beginning of a line
 fragment PP_Start
-    : { getCharPositionInLine() == 0 }? PP_Whitespace? '#' PP_Whitespace? // see note below
+    // See note below.
+    : { getCharPositionInLine() == 0 }? PP_Whitespace? '#' PP_Whitespace?
     ;
 
 fragment PP_Whitespace
@@ -886,18 +963,20 @@ fragment PP_New_Line
 ```
 
 > *Note*:
+>
 > - The pre-processor grammar defines a single lexical token `PP_Directive` used for all pre-processing directives. The semantics of each of the pre-processing directives are defined in this language specification but not how to implement them.
 > - The `PP_Start` fragment must only be recognised at the start of a line, the `getCharPositionInLine() == 0` ANTLR lexical predicate above suggests one way in which this may be achieved and is informative *only*, an implementation may use a different strategy.
+>
 > *end note*
 
 The following pre-processing directives are available:
 
--   `#define` and `#undef`, which are used to define and undefine, respectively, conditional compilation symbols ([§6.5.4](lexical-structure.md#654-definition-directives)).
--   `#if`, `#elif`, `#else`, and `#endif`, which are used to skip conditionally sections of source code ([§6.5.5](lexical-structure.md#655-conditional-compilation-directives)).
--   `#line`, which is used to control line numbers emitted for errors and warnings ([§6.5.8](lexical-structure.md#658-line-directives)).
--   `#error`, which is used to issue errors ([§6.5.6](lexical-structure.md#656-diagnostic-directives)).
--   `#region` and `#endregion`, which are used to explicitly mark sections of source code ([§6.5.7](lexical-structure.md#657-region-directives)).
--   `#pragma`, which is used to specify optional contextual information to a compiler ([§6.5.9](lexical-structure.md#659-pragma-directives)).
+- `#define` and `#undef`, which are used to define and undefine, respectively, conditional compilation symbols ([§6.5.4](lexical-structure.md#654-definition-directives)).
+- `#if`, `#elif`, `#else`, and `#endif`, which are used to skip conditionally sections of source code ([§6.5.5](lexical-structure.md#655-conditional-compilation-directives)).
+- `#line`, which is used to control line numbers emitted for errors and warnings ([§6.5.8](lexical-structure.md#658-line-directives)).
+- `#error`, which is used to issue errors ([§6.5.6](lexical-structure.md#656-diagnostic-directives)).
+- `#region` and `#endregion`, which are used to explicitly mark sections of source code ([§6.5.7](lexical-structure.md#657-region-directives)).
+- `#pragma`, which is used to specify optional contextual information to a compiler ([§6.5.9](lexical-structure.md#659-pragma-directives)).
 
 A pre-processing directive always occupies a separate line of source code and always begins with a `#` character and a pre-processing directive name. White space may occur before the `#` character and between the `#` character and the directive name.
 
@@ -906,6 +985,7 @@ A source line containing a `#define`, `#undef`, `#if`, `#elif`, `#else`, `#endif
 Pre-processing directives are not part of the syntactic grammar of C#. However, pre-processing directives can be used to include or exclude sequences of tokens and can in that way affect the meaning of a C# program.
 
 > *Example*: When compiled, the program
+>
 > ```csharp
 > #define A
 > #undef B
@@ -923,7 +1003,9 @@ Pre-processing directives are not part of the syntactic grammar of C#. However,
 > #endif
 > }
 > ```
+>
 > results in the exact same sequence of tokens as the program
+>
 > ```csharp
 > class C
 > {
@@ -931,7 +1013,10 @@ Pre-processing directives are not part of the syntactic grammar of C#. However,
 >     void I() {}
 > }
 > ```
-> Thus, whereas lexically, the two programs are quite different, syntactically, they are identical. *end example*
+>
+> Thus, whereas lexically, the two programs are quite different, syntactically, they are identical.
+>
+> *end example*
 
 ### 6.5.2 Conditional compilation symbols
 
@@ -939,7 +1024,8 @@ The conditional compilation functionality provided by the `#if`, `#elif`, `#else
 
 ```ANTLR
 fragment PP_Conditional_Symbol
-    : Basic_Identifier // must not be equal to tokens TRUE or FALSE, see note below
+    // Must not be equal to tokens TRUE or FALSE. See note below.
+    : Basic_Identifier
     ;
 ```
 
@@ -947,8 +1033,8 @@ fragment PP_Conditional_Symbol
 
 Two conditional compilation symbols are considered the same if they are identical after the following transformations are applied, in order:
 
--   Each *Unicode_Escape_Sequence* is transformed into its corresponding Unicode character.
--   Any *Formatting_Characters* are removed.
+- Each *Unicode_Escape_Sequence* is transformed into its corresponding Unicode character.
+- Any *Formatting_Characters* are removed.
 
 A conditional compilation symbol has two possible states: ***defined*** or ***undefined***. At the beginning of the lexical processing of a compilation unit, a conditional compilation symbol is undefined unless it has been explicitly defined by an external mechanism (such as a command-line compiler option). When a `#define` directive is processed, the conditional compilation symbol named in that directive becomes defined in that compilation unit. The symbol remains defined until a `#undef` directive for that same symbol is processed, or until the end of the compilation unit is reached. An implication of this is that `#define` and `#undef` directives in one compilation unit have no effect on other compilation units in the same program.
 
@@ -970,11 +1056,13 @@ fragment PP_Or_Expression
     ;
     
 fragment PP_And_Expression
-    : PP_Equality_Expression (PP_Whitespace? '&&' PP_Whitespace? PP_Equality_Expression)*
+    : PP_Equality_Expression (PP_Whitespace? '&&' PP_Whitespace?
+      PP_Equality_Expression)*
     ;
 
 fragment PP_Equality_Expression
-    : PP_Unary_Expression (PP_Whitespace? ('==' | '!=') PP_Whitespace? PP_Unary_Expression)*
+    : PP_Unary_Expression (PP_Whitespace? ('==' | '!=') PP_Whitespace?
+      PP_Unary_Expression)*
     ;
     
 fragment PP_Unary_Expression
@@ -1007,9 +1095,10 @@ fragment PP_Declaration
 
 The processing of a `#define` directive causes the given conditional compilation symbol to become defined, starting with the source line that follows the directive. Likewise, the processing of a `#undef` directive causes the given conditional compilation symbol to become undefined, starting with the source line that follows the directive.
 
-Any `#define` and `#undef` directives in a compilation unit shall occur before the first *token* ([§6.4](lexical-structure.md#64-tokens)) in the compilation unit; otherwise a compile-time error occurs. In intuitive terms, `#define` and `#undef` directives shall precede any "real code" in the compilation unit.
+Any `#define` and `#undef` directives in a compilation unit shall occur before the first *token* ([§6.4](lexical-structure.md#64-tokens)) in the compilation unit; otherwise a compile-time error occurs. In intuitive terms, `#define` and `#undef` directives shall precede any “real code” in the compilation unit.
 
 > *Example*: The example:
+>
 > ```csharp
 > #define Enterprise
 > #if Professional || Enterprise
@@ -1022,9 +1111,15 @@ Any `#define` and `#undef` directives in a compilation unit shall occur before t
 > #endif
 > }
 > ```
-> is valid because the `#define` directives precede the first token (the `namespace` keyword) in the compilation unit. *end example*
+>
+> is valid because the `#define` directives precede the first token (the `namespace` keyword) in the compilation unit.
+>
+> *end example*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: The following example results in a compile-time error because a #define follows real code:
+>
 > ```csharp
 > #define A
 > namespace N
@@ -1035,25 +1130,32 @@ Any `#define` and `#undef` directives in a compilation unit shall occur before t
 > #endif
 > }
 > ```
+>
 > *end example*
 
 A `#define` may define a conditional compilation symbol that is already defined, without there being any intervening `#undef` for that symbol.
 
 > *Example*: The example below defines a conditional compilation symbol A and then defines it again.
+>
 > ```csharp
 > #define A
 > #define A
 > ```
-> For compilers that allow conditional compilation symbols to be defined as compilation options, an alternative way for such redefinition to occur is to define the symbol as a compiler option as well as in the source. *end example*
+>
+> For compilers that allow conditional compilation symbols to be defined as compilation options, an alternative way for such redefinition to occur is to define the symbol as a compiler option as well as in the source.
+>
+> *end example*
 
-A `#undef` may "undefine" a conditional compilation symbol that is not defined.
+A `#undef` may “undefine” a conditional compilation symbol that is not defined.
 
 > *Example*: The example below defines a conditional compilation symbol `A` and then undefines it twice; although the second `#undef` has no effect, it is still valid.
+>
 > ```csharp
 > #define A
 > #undef A
 > #undef A
 > ```
+>
 > *end example*
 
 ### 6.5.5 Conditional compilation directives
@@ -1088,6 +1190,7 @@ fragment PP_Endif
 Conditional compilation directives shall be written in groups consisting of, in order, a `#if` directive, zero or more `#elif` directives, zero or one `#else` directive, and a `#endif` directive. Between the directives are ***conditional sections*** of source code. Each section is controlled by the immediately preceding directive. A conditional section may itself contain nested conditional compilation directives provided these directives form complete groups.
 
 > *Example*: The following example illustrates how conditional compilation directives can nest:
+>
 > ```csharp
 > #define Debug // Debugging on
 > #undef Trace // Tracing off
@@ -1106,21 +1209,25 @@ Conditional compilation directives shall be written in groups consisting of, in 
 >     ...
 > }
 > ```
+>
 > *end example*
 
 At most one of the contained conditional sections is selected for normal lexical processing:
 
--   The *PP_Expression*s of the `#if` and `#elif` directives are evaluated in order until one yields `true`. If an expression yields `true`, the conditional section following  the corresponding directive is selected.
--   If all *PP_Expression*s yield `false`, and if a `#else` directive is present, the conditional section following the `#else` directive is selected.
--   Otherwise, no conditional section is selected.
+- The *PP_Expression*s of the `#if` and `#elif` directives are evaluated in order until one yields `true`. If an expression yields `true`, the conditional section following  the corresponding directive is selected.
+- If all *PP_Expression*s yield `false`, and if a `#else` directive is present, the conditional section following the `#else` directive is selected.
+- Otherwise, no conditional section is selected.
 
 The selected conditional section, if any, is processed as a normal *input_section*: the source code contained in the section shall adhere to the lexical grammar; tokens are generated from the source code in the section; and pre-processing directives in the section have the prescribed effects.
 
 Any remaining conditional sections are skipped and no tokens, except those for pre-processing directives, are generated from the source code. Therefore skipped source code, except pre-processing directives, may be lexically incorrect. Skipped pre-processing directives shall be lexically correct but are not otherwise processed. Within a conditional section that is being skipped any nested conditional sections (contained in nested `#if...#endif` constructs) are also skipped.
 
 > *Note*: The above grammar does not capture the allowance that the conditional sections between the pre-processing directives may be malformed lexically. Therefore the grammar is not ANTLR-ready as it only supports lexically correct input. *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: The following example illustrates how conditional compilation directives can nest:
+>
 > ```csharp
 > #define Debug // Debugging on
 > #undef Trace // Tracing off
@@ -1139,7 +1246,9 @@ Any remaining conditional sections are skipped and no tokens, except those for p
 >     ...
 > }
 > ```
+>
 > Except for pre-processing directives, skipped source code is not subject to lexical analysis. For example, the following is valid despite the unterminated comment in the `#else` section:
+>
 > ```csharp
 > #define Debug // Debugging on
 > class PurchaseTransaction
@@ -1155,9 +1264,11 @@ Any remaining conditional sections are skipped and no tokens, except those for p
 >     ...
 > }
 > ```
+>
 > Note, however, that pre-processing directives are required to be lexically correct even in skipped sections of source code.
-> 
+>
 > Pre-processing directives are not processed when they appear inside multi-line input elements. For example, the program:
+>
 > ```csharp
 > class Hello
 > {
@@ -1173,7 +1284,9 @@ Any remaining conditional sections are skipped and no tokens, except those for p
 >     }
 > }
 > ```
+>
 > results in the output:
+>
 > ```console
 > hello,
 > #if Debug
@@ -1182,7 +1295,9 @@ Any remaining conditional sections are skipped and no tokens, except those for p
 >     Nebraska
 > #endif
 > ```
+>
 > In peculiar cases, the set of pre-processing directives that is processed might depend on the evaluation of the *pp_expression*. The example:
+>
 > ```csharp
 > #if X
 >     /*
@@ -1190,7 +1305,10 @@ Any remaining conditional sections are skipped and no tokens, except those for p
 >     /* */ class Q { }
 > #endif
 > ```
-> always produces the same token stream (`class` `Q` `{` `}`), regardless of whether or not `X` is defined. If `X` is defined, the only processed directives are `#if` and `#endif`, due to the multi-line comment. If `X` is undefined, then three directives (`#if`, `#else`, `#endif`) are part of the directive set. *end example*
+>
+> always produces the same token stream (`class` `Q` `{` `}`), regardless of whether or not `X` is defined. If `X` is defined, the only processed directives are `#if` and `#endif`, due to the multi-line comment. If `X` is undefined, then three directives (`#if`, `#else`, `#endif`) are part of the directive set.
+>
+> *end example*
 
 ### 6.5.6 Diagnostic directives
 
@@ -1208,13 +1326,17 @@ fragment PP_Message
 ```
 
 > *Example*: The example
+>
 > ```csharp
 > #if Debug && Retail
 >     #error A build can't be both debug and retail
 > #endif
 > class Test {...}
 > ```
-> produces a compile-time error ("A build can't be both debug and retail") if the conditional compilation symbols `Debug` and `Retail` are both defined. Note that a *PP_Message* can contain arbitrary text; specifically, it need not contain well-formed tokens, as shown by the single quote in the word `can't`. *end example*
+>
+> produces a compile-time error (“A build can’t be both debug and retail”) if the conditional compilation symbols `Debug` and `Retail` are both defined. Note that a *PP_Message* can contain arbitrary text; specifically, it need not contain well-formed tokens, as shown by the single quote in the word `can't`.
+>
+> *end example*
 
 ### 6.5.7 Region directives
 
@@ -1234,6 +1356,7 @@ fragment PP_End_Region
     : 'endregion' PP_Message?
     ;
 ```
+
 No semantic meaning is attached to a region; regions are intended for use by the programmer or by automated tools to mark a section of source code. There must be one `#endregion` directive matching every `#region` directive. The message specified in a `#region` or `#endregion` directive likewise has no semantic meaning; it merely serves to identify the region. Matching `#region` and `#endregion` directives may have different *PP_Message*s.
 
 The lexical processing of a region:
@@ -1277,7 +1400,8 @@ fragment PP_Compilation_Unit_Name
     ;
     
 fragment PP_Compilation_Unit_Name_Character
-    : ~('\u000D' | '\u000A'   | '\u0085' | '\u2028' | '\u2029' | '#')   // any Input_Character except "
+    // Any Input_Character except "
+    : ~('\u000D' | '\u000A'   | '\u0085' | '\u2028' | '\u2029' | '#')
     ;
 ```
 
@@ -1287,17 +1411,19 @@ A `#line default` directive undoes the effect of all preceding `#line` directive
 
 A `#line hidden` directive has no effect on the compilation unit and line numbers reported in error messages, or produced by use of `CallerLineNumberAttribute` ([§21.5.5.2](attributes.md#21552-the-callerlinenumber-attribute)). It is intended to affect source-level debugging tools so that, when debugging, all lines between a `#line` hidden directive and the subsequent `#line` directive (that is not `#line hidden`) have no line number information, and are skipped entirely when stepping through code.
 
-> *Note*: Although a *Compilation_Unit_Name* might contain text that looks like an escape sequence, such text is not an escape sequence; in this context a '`\`' character simply designates an ordinary backslash character. *end note*
+> *Note*: Although a *Compilation_Unit_Name* might contain text that looks like an escape sequence, such text is not an escape sequence; in this context a ‘`\`’ character simply designates an ordinary backslash character. *end note*
 
 ### 6.5.9 Pragma directives
 
 The `#pragma` preprocessing directive is used to specify contextual information to a compiler.
 
 > *Note*: For example, a compiler might provide `#pragma` directives that
-> -   Enable or disable particular warning messages when compiling subsequent code.
-> -   Specify which optimizations to apply to subsequent code.
-> -   Specify information to be used by a debugger.
-*end note*
+>
+> - Enable or disable particular warning messages when compiling subsequent code.
+> - Specify which optimizations to apply to subsequent code.
+> - Specify information to be used by a debugger.
+>
+> *end note*
 
 ```ANTLR
 fragment PP_Pragma

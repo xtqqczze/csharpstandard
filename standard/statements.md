@@ -2,7 +2,7 @@
 
 ## 12.1 General
 
-C# provides a variety of statements. 
+C# provides a variety of statements.
 
 > *Note*: Most of these statements will be familiar to developers who have programmed in C and C++. *end note*
 
@@ -30,11 +30,13 @@ embedded_statement
     | fixed_statement    // unsafe code support
     ;
 ```
+
 *unsafe_statement* ([§22.2](unsafe-code.md#222-unsafe-contexts)) and *fixed_statement* ([§22.7](unsafe-code.md#227-the-fixed-statement)) are only available in unsafe code ([§22](unsafe-code.md#22-unsafe-code)).
- 
+
 The *embedded_statement* nonterminal is used for statements that appear within other statements. The use of *embedded_statement* rather than *statement* excludes the use of declaration statements and labeled statements in these contexts.
 
 > *Example*: The code
+>
 > ```csharp
 > void F(bool b)
 > {
@@ -42,7 +44,10 @@ The *embedded_statement* nonterminal is used for statements that appear within o
 >       int i = 44;
 > }
 > ```
-> results in a compile-time error because an `if` statement requires an *embedded_statement* rather than a *statement* for its `if` branch. If this code were permitted, then the variable `i` would be declared, but it could never be used. Note, however, that by placing `i`'s declaration in a block, the example is valid. *end example*
+>
+> results in a compile-time error because an `if` statement requires an *embedded_statement* rather than a *statement* for its `if` branch. If this code were permitted, then the variable `i` would be declared, but it could never be used. Note, however, that by placing `i`’s declaration in a block, the example is valid.
+>
+> *end example*
 
 ## 12.2 End points and reachability
 
@@ -53,6 +58,7 @@ Every statement has an ***end point***. In intuitive terms, the end point of a s
 If a statement can possibly be reached by execution, the statement is said to be ***reachable***. Conversely, if there is no possibility that a statement will be executed, the statement is said to be ***unreachable***.
 
 > *Example*: In the following code
+>
 > ```csharp
 > void F()
 > {
@@ -63,13 +69,17 @@ If a statement can possibly be reached by execution, the statement is said to be
 >     Console.WriteLine("reachable");
 > }
 > ```
-> the second invocation of Console.WriteLine is unreachable because there is no possibility that the statement will be executed. *end example*
+>
+> the second invocation of Console.WriteLine is unreachable because there is no possibility that the statement will be executed.
+>
+> *end example*
 
 A warning is reported if a statement other than *throw_statement*, *block*, or *empty_statement* is unreachable. It is specifically not an error for a statement to be unreachable.
 
 > *Note*: To determine whether a particular statement or end point is reachable, the compiler performs flow analysis according to the reachability rules defined for each statement. The flow analysis takes into account the values of constant expressions ([§11.20](expressions.md#1120-constant-expressions)) that control the behavior of statements, but the possible values of non-constant expressions are not considered. In other words, for purposes of control flow analysis, a non-constant expression of a given type is considered to have any possible value of that type.
-> 
+>
 > In the example
+>
 > ```csharp
 > void F()
 > {
@@ -78,7 +88,9 @@ A warning is reported if a statement other than *throw_statement*, *block*, or *
 >         Console.WriteLine("unreachable");
 > }
 > ```
+>
 > the Boolean expression of the `if` statement is a constant expression because both operands of the `==` operator are constants. As the constant expression is evaluated at compile-time, producing the value `false`, the `Console.WriteLine` invocation is considered unreachable. However, if `i` is changed to be a local variable
+>
 > ```csharp
 > void F()
 > {
@@ -87,11 +99,15 @@ A warning is reported if a statement other than *throw_statement*, *block*, or *
 >         Console.WriteLine("reachable");
 > }
 > ```
-> the `Console.WriteLine` invocation is considered reachable, even though, in reality, it will never be executed. *end note*
+>
+> the `Console.WriteLine` invocation is considered reachable, even though, in reality, it will never be executed.
+>
+> *end note*
 
 The *block* of a function member or an anonymous function is always considered reachable. By successively evaluating the reachability rules of each statement in a block, the reachability of any given statement can be determined.
 
 > *Example*: In the following code
+>
 > ```csharp
 > void F(int x)
 > {
@@ -100,16 +116,19 @@ The *block* of a function member or an anonymous function is always considered r
 >         Console.WriteLine("negative");
 > }
 > ```
+>
 > the reachability of the second `Console.WriteLine` is determined as follows:
+>
 > - The first `Console.WriteLine` expression statement is reachable because the block of the `F` method is reachable ([§12.3](statements.md#123-blocks)).
 > - The end point of the first `Console.WriteLine` expression statement is reachable because that statement is reachable ([§12.7](statements.md#127-expression-statements) and [§12.3](statements.md#123-blocks)).
 > - The `if` statement is reachable because the end point of the first `Console.WriteLine` expression statement is reachable ([§12.7](statements.md#127-expression-statements) and [§12.3](statements.md#123-blocks)).
 > - The second `Console.WriteLine` expression statement is reachable because the Boolean expression of the `if` statement does not have the constant value `false`.
+>
 > *end example*
 
 There are two situations in which it is a compile-time error for the end point of a statement to be reachable:
 
-- Because the `switch` statement does not permit a switch section to "fall through" to the next switch section, it is a compile-time error for the end point of the statement list of a switch section to be reachable. If this error occurs, it is typically an indication that a `break` statement is missing.
+- Because the `switch` statement does not permit a switch section to “fall through” to the next switch section, it is a compile-time error for the end point of the statement list of a switch section to be reachable. If this error occurs, it is typically an indication that a `break` statement is missing.
 
 - It is a compile-time error for the end point of the block of a function member or an anonymous function that computes a value to be reachable. If this error occurs, it typically is an indication that a `return` statement is missing ([§12.10.5](statements.md#12105-the-return-statement)).
 
@@ -177,7 +196,8 @@ An empty statement is used when there are no operations to perform in a context 
 
 Execution of an empty statement simply transfers control to the end point of the statement. Thus, the end point of an empty statement is reachable if the empty statement is reachable.
 
-*Example*: An empty statement can be used when writing a `while` statement with a null body:
+> *Example*: An empty statement can be used when writing a `while` statement with a null body:
+>
 > ```csharp
 > bool ProcessMessage() {...}
 > void ProcessMessages()
@@ -186,7 +206,9 @@ Execution of an empty statement simply transfers control to the end point of the
 >         ;
 > }
 > ```
-> Also, an empty statement can be used to declare a label just before the closing "`}`" of a block:
+>
+> Also, an empty statement can be used to declare a label just before the closing “`}`” of a block:
+>
 > ```csharp
 > void F()
 > {
@@ -200,6 +222,7 @@ Execution of an empty statement simply transfers control to the end point of the
 >     ;
 > }
 > ```
+>
 > *end example*
 
 ## 12.5 Labeled statements
@@ -214,13 +237,14 @@ labeled_statement
 
 A labeled statement declares a label with the name given by the *identifier*. The scope of a label is the whole block in which the label is declared, including any nested blocks. It is a compile-time error for two labels with the same name to have overlapping scopes.
 
-A label can be referenced from `goto` statements ([§12.10.4](statements.md#12104-the-goto-statement)) within the scope of the label. 
+A label can be referenced from `goto` statements ([§12.10.4](statements.md#12104-the-goto-statement)) within the scope of the label.
 
 > *Note*: This means that `goto` statements can transfer control within blocks and out of blocks, but never into blocks. *end note*
 
 Labels have their own declaration space and do not interfere with other identifiers.
 
 > *Example*: The example
+>
 > ```csharp
 > int F(int x)
 > {
@@ -233,7 +257,10 @@ Labels have their own declaration space and do not interfere with other identifi
 >     return x;
 > }
 > ```
-> is valid and uses the name x as both a parameter and a label. *end example*
+>
+> is valid and uses the name x as both a parameter and a label.
+>
+> *end example*
 
 Execution of a labeled statement corresponds exactly to execution of the statement following the label.
 
@@ -285,7 +312,7 @@ local_variable_initializer
 
 *stackalloc_initializer* ([§22.9](unsafe-code.md#229-stack-allocation)) is only available in unsafe code ([§22](unsafe-code.md#22-unsafe-code)).
 
-The *local_variable_type* of a *local_variable_declaration* either directly specifies the type of the variables introduced by the declaration, or indicates with the identifier `var` that the type should be inferred based on an initializer. The type is followed by a list of *local_variable_declarator*s, each of which introduces a new variable. A *local_variable_declarator* consists of an *identifier* that names the variable, optionally followed by an "`=`" token and a *local_variable_initializer* that gives the initial value of the variable.
+The *local_variable_type* of a *local_variable_declaration* either directly specifies the type of the variables introduced by the declaration, or indicates with the identifier `var` that the type should be inferred based on an initializer. The type is followed by a list of *local_variable_declarator*s, each of which introduces a new variable. A *local_variable_declarator* consists of an *identifier* that names the variable, optionally followed by an “`=`” token and a *local_variable_initializer* that gives the initial value of the variable.
 
 In the context of a local variable declaration, the identifier `var` acts as a contextual keyword ([§6.4.4](lexical-structure.md#644-keywords)).When the *local_variable_type* is specified as `var` and no type named `var` is in scope, the declaration is an ***implicitly typed local variable declaration***, whose type is inferred from the type of the associated initializer expression. Implicitly typed local variable declarations are subject to the following restrictions:
 
@@ -296,6 +323,7 @@ In the context of a local variable declaration, the identifier `var` acts as a c
 - The initializer *expression* cannot refer to the declared variable itself
 
 > *Example*: The following are incorrect implicitly typed local variable declarations:
+>
 > ```csharp
 > var x;                  // Error, no initializer to infer type from
 > var y = {1, 2, 3};      // Error, array initializer not permitted
@@ -303,6 +331,7 @@ In the context of a local variable declaration, the identifier `var` acts as a c
 > var u = x => x + 1;     // Error, anonymous functions do not have a type
 > var v = v++;            // Error, initializer cannot refer to v itself
 > ```
+>
 > *end example*
 
 The value of a local variable is obtained in an expression using a *simple_name* ([§11.7.4](expressions.md#1174-simple-names)). A local variable shall be definitely assigned ([§9.4](variables.md#94-definite-assignment)) at each location where its value is obtained.
@@ -312,13 +341,16 @@ The scope of a local variable declared in a *local_variable_declaration* is the 
 A local variable declaration that declares multiple variables is equivalent to multiple declarations of single variables with the same type. Furthermore, a variable initializer in a local variable declaration corresponds exactly to an assignment statement that is inserted immediately after the declaration.
 
 > *Example*: The example
+>
 > ```csharp
 > void F()
 > {
 >     int x = 1, y, z = x * 2;
 > }
 > ```
+>
 > corresponds exactly to
+>
 > ```csharp
 > void F()
 > {
@@ -327,11 +359,13 @@ A local variable declaration that declares multiple variables is equivalent to m
 >     int z; z = x * 2;
 > }
 > ```
+>
 > *end example*
 
 In an implicitly typed local variable declaration, the type of the local variable being declared is taken to be the same as the type of the expression used to initialize the variable.
 
 > *Example*:
+>
 > ```csharp
 > var i = 5;
 > var s = "Hello";
@@ -339,7 +373,9 @@ In an implicitly typed local variable declaration, the type of the local variabl
 > var numbers = new int[] {1, 2, 3};
 > var orders = new Dictionary<int,Order>();
 > ```
+>
 > The implicitly typed local variable declarations above are precisely equivalent to the following explicitly typed declarations:
+>
 > ```csharp
 > int i = 5;
 > string s = "Hello";
@@ -347,6 +383,7 @@ In an implicitly typed local variable declaration, the type of the local variabl
 > int[] numbers = new int[] {1, 2, 3};
 > Dictionary<int,Order> orders = new Dictionary<int,Order>();
 > ```
+>
 > *end example*
 
 ### 12.6.3 Local constant declarations
@@ -367,7 +404,7 @@ constant_declarator
     ;
 ```
 
-The *type* of a *local_constant_declaration* specifies the type of the constants introduced by the declaration. The type is followed by a list of *constant_declarator*s, each of which introduces a new constant. A *constant_declarator* consists of an *identifier* that names the constant, followed by an "`=`" token, followed by a *constant_expression* ([§11.20](expressions.md#1120-constant-expressions)) that gives the value of the constant.
+The *type* of a *local_constant_declaration* specifies the type of the constants introduced by the declaration. The type is followed by a list of *constant_declarator*s, each of which introduces a new constant. A *constant_declarator* consists of an *identifier* that names the constant, followed by an “`=`” token, followed by a *constant_expression* ([§11.20](expressions.md#1120-constant-expressions)) that gives the value of the constant.
 
 The *type* and *constant_expression* of a local constant declaration shall follow the same rules as those of a constant member declaration ([§14.4](classes.md#144-constants)).
 
@@ -399,7 +436,7 @@ statement_expression
     ;
 ```
 
-Not all expressions are permitted as statements. 
+Not all expressions are permitted as statements.
 
 > *Note*: In particular, expressions such as `x + y` and `x == 1`, that merely compute a value (which will be discarded), are not permitted as statements. *end note*
 
@@ -417,6 +454,7 @@ selection_statement
     | switch_statement
     ;
 ```
+
 ### 12.8.2 The if statement
 
 The `if` statement selects a statement for execution based on the value of a Boolean expression.
@@ -424,19 +462,21 @@ The `if` statement selects a statement for execution based on the value of a Boo
 ```ANTLR
 if_statement
     : 'if' '(' boolean_expression ')' embedded_statement
-    | 'if' '(' boolean_expression ')' embedded_statement 'else' embedded_statement
+    | 'if' '(' boolean_expression ')' embedded_statement
+      'else' embedded_statement
     ;
 ```
 
 An `else` part is associated with the lexically nearest preceding `if` that is allowed by the syntax.
 
 > *Example*: Thus, an `if` statement of the form
-> 
+>
 > ```csharp
 > if (x) if (y) F(); else G();
 > ```
+>
 > is equivalent to
-> 
+>
 > ```csharp
 > if (x)
 > {
@@ -450,6 +490,7 @@ An `else` part is associated with the lexically nearest preceding `if` that is a
 >     }
 > }
 > ```
+>
 > *end example*
 
 An `if` statement is executed as follows:
@@ -507,9 +548,10 @@ A `switch` statement is executed as follows:
 - If none of the constants specified in `case` labels in the same `switch` statement is equal to the value of the switch expression, and if a `default` label is present, control is transferred to the statement list following the `default` label.
 - If none of the constants specified in `case` labels in the same `switch` statement is equal to the value of the switch expression, and if no `default` label is present, control is transferred to the end point of the `switch` statement.
 
-If the end point of the statement list of a switch section is reachable, a compile-time error occurs. This is known as the "no fall through" rule.
+If the end point of the statement list of a switch section is reachable, a compile-time error occurs. This is known as the “no fall through” rule.
 
 > *Example*: The example
+>
 > ```csharp
 > switch (i)
 > {
@@ -524,7 +566,9 @@ If the end point of the statement list of a switch section is reachable, a compi
 >         break;
 > }
 > ```
-> is valid because no switch section has a reachable end point. Unlike C and C++, execution of a switch section is not permitted to "fall through" to the next switch section, and the example
+>
+> is valid because no switch section has a reachable end point. Unlike C and C++, execution of a switch section is not permitted to “fall through” to the next switch section, and the example
+>
 > ```csharp
 > switch (i)
 > {
@@ -536,7 +580,9 @@ If the end point of the statement list of a switch section is reachable, a compi
 >         CaseAny();
 > }
 > ```
+>
 > results in a compile-time error. When execution of a switch section is to be followed by execution of another switch section, an explicit `goto case` or `goto default` statement shall be used:
+>
 > ```csharp
 > switch (i)
 > {
@@ -551,11 +597,13 @@ If the end point of the statement list of a switch section is reachable, a compi
 >         break;
 > }
 > ```
+>
 > *end example*
 
 Multiple labels are permitted in a *switch_section*.
 
 > *Example*: The example
+>
 > ```csharp
 > switch (i)
 > {
@@ -571,9 +619,15 @@ Multiple labels are permitted in a *switch_section*.
 >         break;
 > }
 > ```
-> is valid. The example does not violate the "no fall through" rule because the labels `case 2:` and `default:` are part of the same *switch_section*. *end example*
+>
+> is valid. The example does not violate the “no fall through” rule because the labels `case 2:` and `default:` are part of the same *switch_section*.
+>
+> *end example*
+<!-- markdownlint-disable MD028 -->
 
-> *Note*: The "no fall through" rule prevents a common class of bugs that occur in C and C++ when `break` statements are accidentally omitted. For example, the sections of the `switch` statement above can be reversed without affecting the behavior of the statement:
+<!-- markdownlint-enable MD028 -->
+> *Note*: The “no fall through” rule prevents a common class of bugs that occur in C and C++ when `break` statements are accidentally omitted. For example, the sections of the `switch` statement above can be reversed without affecting the behavior of the statement:
+>
 > ```csharp
 > switch (i)
 > {
@@ -588,9 +642,13 @@ Multiple labels are permitted in a *switch_section*.
 >         goto case 1;
 > }
 > ```
+>
 > *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Note*: The statement list of a switch section typically ends in a `break`, `goto case`, or `goto default` statement, but any construct that renders the end point of the statement list unreachable is permitted. For example, a `while` statement controlled by the Boolean expression `true` is known to never reach its end point. Likewise, a `throw` or `return` statement always transfers control elsewhere and never reaches its end point. Thus, the following example is valid:
+>
 > ```csharp
 > switch (i)
 > {
@@ -605,9 +663,13 @@ Multiple labels are permitted in a *switch_section*.
 >          return;
 > }
 > ```
+>
 > *end note*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: The governing type of a `switch` statement can be the type `string`. For example:
+>
 > ```csharp
 > void DoCommand(string command)
 > {
@@ -628,8 +690,11 @@ Multiple labels are permitted in a *switch_section*.
 >     }
 > }
 > ```
+>
 > *end example*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Note*: Like the string equality operators ([§11.11.8](expressions.md#11118-string-equality-operators)), the `switch` statement is case sensitive and will execute a given switch section only if the switch expression string exactly matches a `case` label constant. *end note*
 When the governing type of a `switch` statement is `string` or a nullable value type, the value `null` is permitted as a `case` label constant.
 
@@ -639,14 +704,14 @@ The statement list of a given switch section is reachable if the `switch` statem
 
 - The switch expression is a non-constant value.
 - The switch expression is a constant value that matches a `case` label in the switch section.
-- The switch expression is a constant value that doesn't match any `case` label, and the switch section contains the `default` label.
+- The switch expression is a constant value that doesn’t match any `case` label, and the switch section contains the `default` label.
 - A switch label of the switch section is referenced by a reachable `goto case` or `goto default` statement.
 
 The end point of a `switch` statement is reachable if at least one of the following is true:
 
 - The `switch` statement contains a reachable `break` statement that exits the `switch` statement.
 - The `switch` statement is reachable, the switch expression is a non-constant value, and no `default` label is present.
-- The `switch` statement is reachable, the switch expression is a constant value that doesn't match any `case` label, and no `default` label is present.
+- The `switch` statement is reachable, the switch expression is a constant value that doesn’t match any `case` label, and no `default` label is present.
 
 ## 12.9 Iteration statements
 
@@ -718,7 +783,8 @@ The `for` statement evaluates a sequence of initialization expressions and then,
 
 ```ANTLR
 for_statement
-    : 'for' '(' for_initializer? ';' for_condition? ';' for_iterator? ')' embedded_statement
+    : 'for' '(' for_initializer? ';' for_condition? ';' for_iterator? ')'
+      embedded_statement
     ;
 
 for_initializer
@@ -770,7 +836,8 @@ The `foreach` statement enumerates the elements of a collection, executing an em
 
 ```ANTLR
 foreach_statement
-    : 'foreach' '(' local_variable_type identifier 'in' expression ')' embedded_statement
+    : 'foreach' '(' local_variable_type identifier 'in' expression ')'
+      embedded_statement
     ;
 ```
 
@@ -793,7 +860,7 @@ The compile-time processing of a `foreach` statement first determines the ***col
 - Otherwise, check for an enumerable interface:
   - If among all the types `Tᵢ` for which there is an implicit conversion from `X` to `IEnumerable<ᵢ>`, there is a unique type `T` such that `T` is not dynamic and for all the other `Tᵢ` there is an implicit conversion from `IEnumerable<T>` to `IEnumerable<Tᵢ>`, then the collection type is the interface `IEnumerable<T>`, the enumerator type is the interface `IEnumerator<T>`, and the iteration type is `T`.
   - Otherwise, if there is more than one such type `T`, then an error is produced and no further steps are taken.
-  - Otherwise, if there is an implicit conversion from `X` to the `System.Collections.IEnumerable` interface, then the collection type is this interface, the enumerator type is the interface `System.Collections.IEnumerator`, and the iteration type is object.
+  - Otherwise, if there is an implicit conversion from `X` to the `System.Collections.IEnumerable` interface, then the collection type is this interface, the enumerator type is the interface `System.Collections.IEnumerator`, and the iteration type is `object`.
   - Otherwise, an error is produced and no further steps are taken.
 
 The above steps, if successful, unambiguously produce a collection type `C`, enumerator type `E` and iteration type `T`. A `foreach` statement of the form
@@ -822,7 +889,7 @@ is then expanded to:
 }
 ```
 
-The variable `e` is not visible to or accessible to the expression `x` or the embedded statement or any other source code of the program. The variable `v` is read-only in the embedded statement. If there is not an explicit conversion ([§10.3](conversions.md#103-explicit-conversions)) from `T` (the iteration type) to `V` (the *local_variable_type* in the `foreach` statement), an error is produced and no further steps are taken. 
+The variable `e` is not visible to or accessible to the expression `x` or the embedded statement or any other source code of the program. The variable `v` is read-only in the embedded statement. If there is not an explicit conversion ([§10.3](conversions.md#103-explicit-conversions)) from `T` (the iteration type) to `V` (the *local_variable_type* in the `foreach` statement), an error is produced and no further steps are taken.
 
 > *Note*: If `x` has the value `null`, a `System.NullReferenceException` is thrown at run-time. *end note*
 
@@ -831,6 +898,7 @@ An implementation is permitted to implement a given *foreach_statement* differen
 The placement of `v` inside the `while` loop is important for how it is captured ([§11.16.6.2](expressions.md#111662-captured-outer-variables)) by any anonymous function occurring in the *embedded_statement*.
 
 > *Example*:
+>
 > ```csharp
 > int[] values = { 7, 9, 13 };
 > Action f = null;
@@ -843,19 +911,25 @@ The placement of `v` inside the `while` loop is important for how it is captured
 > }
 > f();
 > ```
-> If `v` in the expanded form were declared outside of the `while` loop, it would be shared among all iterations, and its value after the `for` loop would be the final value, `13`, which is what the invocation of `f` would print. Instead, because each iteration has its own variable `v`, the one captured by `f` in the first iteration will continue to hold the value `7`, which is what will be printed. (Note that earlier versions of C# declared `v` outside of the `while` loop.) *end example*
+>
+> If `v` in the expanded form were declared outside of the `while` loop, it would be shared among all iterations, and its value after the `for` loop would be the final value, `13`, which is what the invocation of `f` would print. Instead, because each iteration has its own variable `v`, the one captured by `f` in the first iteration will continue to hold the value `7`, which is what will be printed. (Note that earlier versions of C# declared `v` outside of the `while` loop.)
+>
+> *end example*
 
 The body of the `finally` block is constructed according to the following steps:
 
 - If there is an implicit conversion from `E` to the `System.IDisposable` interface, then
   - If `E` is a non-nullable value type then the `finally` clause is expanded to the semantic equivalent of:
-  ```csharp
+
+    ```csharp
     finally
     {
         ((System.IDisposable)e).Dispose();
     }
     ```
+
   - Otherwise the `finally` clause is expanded to the semantic equivalent of:
+
     ```csharp
     finally
     {
@@ -866,12 +940,16 @@ The body of the `finally` block is constructed according to the following steps:
         }
     }
     ```
+
     except that if `E` is a value type, or a type parameter instantiated to a value type, then the conversion of `e` to `System.IDisposable` shall not cause boxing to occur.
 - Otherwise, if `E` is a sealed type, the `finally` clause is expanded to an empty block:
+
   ```csharp
   finally {}
   ```
+
 - Otherwise, the `finally` clause is expanded to:
+  
   ```csharp
   finally
   {
@@ -888,6 +966,7 @@ The local variable `d` is not visible to or accessible to any user code. In par
 The order in which `foreach` traverses the elements of an array, is as follows: For single-dimensional arrays elements are traversed in increasing index order, starting with index 0 and ending with index `Length – 1`. For multi-dimensional arrays, elements are traversed such that the indices of the rightmost dimension are increased first, then the next left dimension, and so on to the left.
 
 > *Example*: The following example prints out each value in a two-dimensional array, in element order:
+>
 > ```csharp
 > using System;
 > class Test
@@ -907,13 +986,19 @@ The order in which `foreach` traverses the elements of an array, is as follows: 
 >     }
 > }
 > ```
+>
 > The output produced is as follows:
+>
 > ```console
 > 1.2 2.3 3.4 4.5 5.6 6.7 7.8 8.9
 > ```
+>
 > *end example*
+<!-- markdownlint-disable MD028 -->
 
+<!-- markdownlint-enable MD028 -->
 > *Example*: In the following example
+>
 > ```csharp
 > int[] numbers = { 1, 3, 5, 7, 9 };
 > foreach (var n in numbers)
@@ -921,7 +1006,9 @@ The order in which `foreach` traverses the elements of an array, is as follows: 
 >     Console.WriteLine(n);
 > }
 > ```
+>
 > the type of `n` is inferred to be `int`, the iteration type of `numbers`.
+>  
 > *end example*
 
 ## 12.10 Jump statements
@@ -947,6 +1034,7 @@ When a jump statement occurs within a block, and the target of that jump stateme
 Execution of jump statements is complicated by the presence of intervening `try` statements. In the absence of such `try` statements, a jump statement unconditionally transfers control from the jump statement to its target. In the presence of such intervening `try` statements, execution is more complex. If the jump statement exits one or more `try` blocks with associated `finally` blocks, control is initially transferred to the `finally` block of the innermost `try` statement. When and if control reaches the end point of a `finally` block, control is transferred to the `finally` block of the next enclosing `try` statement. This process is repeated until the `finally` blocks of all intervening `try` statements have been executed.
 
 > *Example*: In the following code
+>
 > ```csharp
 > using System;
 > class Test
@@ -976,14 +1064,17 @@ Execution of jump statements is complicated by the presence of intervening `try`
 >     }
 > }
 > ```
+>
 > the `finally` blocks associated with two `try` statements are executed before control is transferred to the target of the jump statement.
 > The output produced is as follows:
+>
 > ```console
 > Before break
 > Innermost finally block
 > Outermost finally block
 > After break
 > ```
+>
 > *end example*
 
 ### 12.10.2 The break statement
@@ -1044,9 +1135,10 @@ goto_statement
     ;
 ```
 
-The target of a `goto` *identifier* statement is the labeled statement with the given label. If a label with the given name does not exist in the current function member, or if the `goto` statement is not within the scope of the label, a compile-time error occurs. 
+The target of a `goto` *identifier* statement is the labeled statement with the given label. If a label with the given name does not exist in the current function member, or if the `goto` statement is not within the scope of the label, a compile-time error occurs.
 
 > *Note*: This rule permits the use of a `goto` statement to transfer control *out of* a nested scope, but not *into* a nested scope. In the example
+>
 > ```csharp
 > using System;
 > 
@@ -1080,7 +1172,10 @@ The target of a `goto` *identifier* statement is the labeled statement with the 
 >     }
 > }
 > ```
-> a `goto` statement is used to transfer control out of a nested scope. *end note*
+>
+> a `goto` statement is used to transfer control out of a nested scope.
+>
+> *end note*
 
 The target of a `goto case` statement is the statement list in the immediately enclosing `switch` statement ([§12.8.3](statements.md#1283-the-switch-statement)) which contains a`case` label with the given constant value. If the `goto case` statement is not enclosed by a `switch` statement, if the *constant_expression* is not implicitly convertible ([§10.2](conversions.md#102-implicit-conversions)) to the governing type of the nearest enclosing `switch` statement, or if the nearest enclosing `switch` statement does not contain a `case` label with the given constant value, a compile-time error occurs.
 
@@ -1207,6 +1302,7 @@ In order to locate a handler for an exception, `catch` clauses are examined in l
 Within a `catch` block, a `throw` statement ([§12.10.6](statements.md#12106-the-throw-statement)) with no expression can be used to re-throw the exception that was caught by the `catch` block. Assignments to an exception variable do not alter the exception that is re-thrown.
 
 > *Example*: In the following code
+>
 > ```csharp
 > using System;
 >
@@ -1241,16 +1337,21 @@ Within a `catch` block, a `throw` statement ([§12.10.6](statements.md#12106-the
 >     }
 > }
 > ```
+>
 > the method `F` catches an exception, writes some diagnostic information to the console, alters the exception variable, and re-throws the exception. The exception that is re-thrown is the original exception, so the output produced is:
+>
 > ```console
 > Exception in F: G
 > Exception in Main: G
 > ```
+>
 > If the first `catch` block had thrown `e` instead of rethrowing the current exception, the output produced would be as follows:
+>
 > ```console
 > Exception in F: G
 > Exception in Main: F
 > ```
+>
 > *end example*
 
 It is a compile-time error for a `break`, `continue`, or `goto` statement to transfer control out of a `finally` block. When a `break`, `continue`, or `goto` statement occurs in a `finally` block, the target of the statement shall be within the same `finally` block, or otherwise a compile-time error occurs.
@@ -1270,6 +1371,7 @@ The statements of a `finally` block are always executed when control leaves a `t
 If an exception is thrown during execution of a `finally` block, and is not caught within the same `finally` block,the exception is propagated to the next enclosing `try` statement. If another exception was in the process of being propagated, that exception is lost. The process of propagating an exception is discussed further in the description of the `throw` statement ([§12.10.6](statements.md#12106-the-throw-statement)).
 
 > *Example*: In the following code
+>
 > ```csharp
 > using System;
 > 
@@ -1306,12 +1408,15 @@ If an exception is thrown during execution of a `finally` block, and is not caug
 >     }
 > }
 > ```
+>
 > the method `Method` throws an exception. The first action is to examine the enclosing `catch` clauses, executing any *exception filters*. Then, the `finally` clause in `Method` executes before control transfers to the enclosing matching `catch` clause. The resulting output is:
+>
 > ```console
 > Filter
 > Finally
 > Catch
 > ```
+>
 > *end example*
 
 The `try` block of a `try` statement is reachable if the `try` statement is reachable.
@@ -1357,7 +1462,7 @@ The *expression* of a `lock` statement shall denote a value of a type known to b
 
 A `lock` statement of the form
 
-`lock (x)` ...
+`lock (x)` …
 
 where `x` is an expression of a *reference_type*, is precisely equivalent to:
 
@@ -1497,6 +1602,7 @@ using (ResourceType rN = eN)
 ```
 
 > *Example*: The example below creates a file named log.txt and writes two lines of text to the file. The example then opens that same file for reading and copies the contained lines of text to the console.
+>
 > ```csharp
 > using System;
 > using System.IO;
@@ -1521,7 +1627,10 @@ using (ResourceType rN = eN)
 >     }
 > }
 > ```
-> Since the `TextWriter` and `TextReader` classes implement the `IDisposable` interface, the example can use `using` statements to ensure that the underlying file is properly closed following the write or read operations. *end example*
+>
+> Since the `TextWriter` and `TextReader` classes implement the `IDisposable` interface, the example can use `using` statements to ensure that the underlying file is properly closed following the write or read operations.
+>
+> *end example*
 
 ## 12.15 The yield statement
 
@@ -1544,6 +1653,7 @@ There are several restrictions on where a `yield` statement can appear, as descr
 - It is a compile-time error for a `yield return` statement to appear anywhere in a `try` statement that contains any *catch_clauses*.
 
 > *Example*: The following example shows some valid and invalid uses of `yield` statements.
+>
 > ```csharp
 > delegate IEnumerable<int> D();
 >
@@ -1580,6 +1690,7 @@ There are several restrictions on where a `yield` statement can appear, as descr
 >     yield return 1;     // Error, wrong return type for an iterator block
 > }
 > ```
+>
 > *end example*
 
 An implicit conversion ([§10.2](conversions.md#102-implicit-conversions)) shall exist from the type of the expression in the `yield return` statement to the yield type ([§14.14.4](classes.md#14144-yield-type)) of the iterator.
@@ -1590,11 +1701,11 @@ A `yield return` statement is executed as follows:
 - Execution of the iterator block is suspended. If the `yield return` statement is within one or more `try` blocks, the associated `finally` blocks are *not* executed at this time.
 - The `MoveNext` method of the enumerator object returns `true` to its caller, indicating that the enumerator object successfully advanced to the next item.
 
-The next call to the enumerator object's `MoveNext` method resumes execution of the iterator block from where it was last suspended.
+The next call to the enumerator object’s `MoveNext` method resumes execution of the iterator block from where it was last suspended.
 
 A `yield break` statement is executed as follows:
 
 - If the `yield break` statement is enclosed by one or more `try` blocks with associated `finally` blocks, control is initially transferred to the `finally` block of the innermost `try` statement. When and if control reaches the end point of a `finally` block, control is transferred to the `finally` block of the next enclosing `try` statement. This process is repeated until the `finally` blocks of all enclosing `try` statements have been executed.
 - Control is returned to the caller of the iterator block. This is either the `MoveNext` method or `Dispose` method of the enumerator object.
 
-Because a `yield break statement unconditionally transfers control elsewhere, the end point of a `yield break` statement is never reachable.
+Because a `yield break` statement unconditionally transfers control elsewhere, the end point of a `yield break` statement is never reachable.
