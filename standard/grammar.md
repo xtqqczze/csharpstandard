@@ -699,14 +699,14 @@ variable_reference
     : expression
     ;
 
-// Source: §11.2 Pattern Forms
+// Source: §11.2.1 General
 pattern
     : declaration_pattern
     | constant_pattern
     | var_pattern
     ;
 
-// Source: §11.2.1 Declaration pattern
+// Source: §11.2.2 Declaration pattern
 declaration_pattern
     : type simple_designation
     ;
@@ -717,12 +717,12 @@ single_variable_designation
     : identifier
     ;
 
-// Source: §11.2.2 Constant pattern
+// Source: §11.2.3 Constant pattern
 constant_pattern
     : constant_expression
     ;
 
-// Source: §11.2.3 Var pattern
+// Source: §11.2.4 Var pattern
 var_pattern
     : 'var' designation
     ;
@@ -745,6 +745,7 @@ argument_name
 
 argument_value
     : expression
+    | 'in' variable_reference
     | 'ref' variable_reference
     | 'out' variable_reference
     ;
@@ -782,6 +783,7 @@ primary_no_array_creation_expression
     | anonymous_method_expression
     | pointer_member_access     // unsafe code support
     | pointer_element_access    // unsafe code support
+    | stackalloc_expression
     ;
 
 // Source: §12.8.3 Interpolated string expressions
@@ -1136,7 +1138,25 @@ default_literal
     : 'default'
     ;
 
-// Source: §12.8.21 Nameof expressions
+// Source: §12.8.21 Stack allocation
+stackalloc_expression
+    : 'stackalloc' unmanaged_type '[' expression ']'
+    | 'stackalloc' unmanaged_type? '[' constant_expression? ']' stackalloc_initializer
+    ;
+
+stackalloc_initializer
+     : '{' stackalloc_initializer_element_list '}'
+     ;
+
+stackalloc_initializer_element_list
+     : stackalloc_element_initializer (',' stackalloc_element_initializer)* ','?
+     ;
+    
+stackalloc_element_initializer
+    : expression
+    ;
+
+// Source: §12.8.22 Nameof expressions
 nameof_expression
     : 'nameof' '(' named_entity ')'
     ;
@@ -1270,10 +1290,16 @@ declaration_expression
     : local_variable_type identifier
     ;
 
+local_variable_type
+    : type
+    | 'var'
+    ;
+
 // Source: §12.18 Conditional operator
 conditional_expression
     : null_coalescing_expression
     | null_coalescing_expression '?' expression ':' expression
+    | null_coalescing_expression '?' 'ref' variable_reference ':' 'ref' variable_reference
     ;
 
 // Source: §12.19.1 General
@@ -1306,6 +1332,7 @@ explicit_anonymous_function_parameter
 anonymous_function_parameter_modifier
     : 'ref'
     | 'out'
+    | 'in'
     ;
 
 implicit_anonymous_function_signature
@@ -1325,6 +1352,7 @@ implicit_anonymous_function_parameter
 anonymous_function_body
     : null_conditional_invocation_expression
     | expression
+    | 'ref' variable_reference
     | block
     ;
 
@@ -1413,7 +1441,7 @@ assignment
     ;
 
 assignment_operator
-    : '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<='
+    : '=' 'ref'? | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<='
     | right_shift_assignment
     ;
 
@@ -1493,28 +1521,50 @@ declaration_statement
 
 // Source: §13.6.2 Local variable declarations
 local_variable_declaration
-    : local_variable_type local_variable_declarators
+    : implicitly_typed_local_variable_declaration
+    | explicitly_typed_local_variable_declaration
+    | ref_local_variable_declaration
     ;
 
-local_variable_type
-    : type
-    | 'var'
+// Source: §13.6.2.1 Implicitly typed local variable declarations
+implicitly_typed_local_variable_declaration
+    : 'var' implicitly_typed_local_variable_declarator
+    | ref_kind 'var' ref_local_variable_declarator
     ;
 
-local_variable_declarators
-    : local_variable_declarator
-    | local_variable_declarators ',' local_variable_declarator
+implicitly_typed_local_variable_declarator
+    : identifier '=' expression
     ;
 
-local_variable_declarator
-    : identifier
-    | identifier '=' local_variable_initializer
+// Source: §13.6.2.2 Explicitly typed local variable declarations
+explicitly_typed_local_variable_declaration
+    : type explicitly_typed_local_variable_declarators
+    ;
+
+explicitly_typed_local_variable_declarators
+    : explicitly_typed_local_variable_declarator (',' explicitly_typed_local_variable_declarator)*
+    ;
+
+explicitly_typed_local_variable_declarator
+    : identifier ('=' local_variable_initializer)?
     ;
 
 local_variable_initializer
     : expression
     | array_initializer
-    | stackalloc_initializer    // unsafe code support
+    ;
+
+// Source: §13.6.2.3 Ref local variable declarations
+ref_local_variable_declaration
+    : ref_kind type ref_local_variable_declarators
+    ;
+
+ref_local_variable_declarators
+    : ref_local_variable_declarator (',' ref_local_variable_declarator)*
+    ;
+
+ref_local_variable_declarator
+    : identifier '=' 'ref' variable_reference
     ;
 
 // Source: §13.6.3 Local constant declarations
@@ -1532,22 +1582,33 @@ constant_declarator
 
 // Source: §13.6.4 Local function declarations
 local_function_declaration
-    : local_function_header local_function_body
+    : local_function_modifier* return_type local_function_header local_function_body
+    | ref_local_function_modifier* ref_kind ref_return_type local_function_header ref_local_function_body
     ;
 
 local_function_header
-    : local_function_modifier* return_type identifier type_parameter_list?
-        ( formal_parameter_list? ) type_parameter_constraints_clause*
+    : identifier '(' formal_parameter_list? ')'
+    | identifier type_parameter_list '(' formal_parameter_list? ')' type_parameter_constraints_clause*
     ;
+
 local_function_modifier
-    : 'async'
-    | 'unsafe'
+    : ref_local_function_modifier
+    | 'async'
+    ;
+
+ref_local_function_modifier
+    : unsafe_modifier   // unsafe code support
     ;
 
 local_function_body
     : block
     | '=>' null_conditional_invocation_expression ';'
     | '=>' expression ';'
+    ;
+
+ref_local_function_body
+    : block
+    | '=>' 'ref' variable_reference ';'
     ;
 
 // Source: §13.7 Expression statements
@@ -1597,7 +1658,7 @@ switch_label
     : 'case' pattern case_guard?  ':'
     | 'default' ':'
     ;
-    
+
 case_guard
     : 'when' expression
     ;
@@ -1645,8 +1706,8 @@ statement_expression_list
 
 // Source: §13.9.5 The foreach statement
 foreach_statement
-    : 'foreach' '(' local_variable_type identifier 'in' expression ')'
-      embedded_statement
+    : 'foreach' '(' ref_kind? local_variable_type identifier 'in' 
+      expression ')' embedded_statement
     ;
 
 // Source: §13.10.1 General
@@ -1677,7 +1738,9 @@ goto_statement
 
 // Source: §13.10.5 The return statement
 return_statement
-    : 'return' expression? ';'
+    : 'return' ';'
+    | 'return' expression ';'
+    | 'return' 'ref' variable_reference ';'
     ;
 
 // Source: §13.10.6 The throw statement
@@ -1953,16 +2016,34 @@ variable_declarator
 
 // Source: §15.6.1 General
 method_declaration
-    : method_header method_body
+    : attributes? method_modifiers return_type method_header method_body
+    | attributes? ref_method_modifiers ref_kind ref_return_type method_header ref_method_body
+    ;
+
+method_modifiers
+    : method_modifier* 'partial'?
+    ;
+
+ref_kind
+    : 'ref'
+    | 'ref' 'readonly'
+    ;
+
+ref_method_modifiers
+    : ref_method_modifier*
     ;
 
 method_header
-    : attributes? method_modifier* 'partial'? return_type member_name
-      type_parameter_list? '(' formal_parameter_list? ')'
-      type_parameter_constraints_clause*
+    : member_name '(' formal_parameter_list? ')'
+    | member_name type_parameter_list '(' formal_parameter_list? ')' type_parameter_constraints_clause*
     ;
 
 method_modifier
+    : ref_method_modifier
+    | 'async'
+    ;
+
+ref_method_modifier
     : 'new'
     | 'public'
     | 'protected'
@@ -1974,13 +2055,16 @@ method_modifier
     | 'override'
     | 'abstract'
     | 'extern'
-    | 'async'
     | unsafe_modifier   // unsafe code support
     ;
 
 return_type
-    : type
+    : ref_return_type
     | 'void'
+    ;
+
+ref_return_type
+    : type
     ;
 
 member_name
@@ -1992,6 +2076,12 @@ method_body
     : block
     | '=>' null_conditional_invocation_expression ';'
     | '=>' expression ';'
+    | ';'
+    ;
+
+ref_method_body
+    : block
+    | '=>' 'ref' variable_reference ';'
     | ';'
     ;
 
@@ -2022,6 +2112,7 @@ parameter_modifier
 parameter_mode_modifier
     : 'ref'
     | 'out'
+    | 'in'
     ;
 
 parameter_array
@@ -2031,6 +2122,7 @@ parameter_array
 // Source: §15.7.1 General
 property_declaration
     : attributes? property_modifier* type member_name property_body
+    | attributes? property_modifier* ref_kind type member_name ref_property_body
     ;    
 
 property_modifier
@@ -2055,6 +2147,11 @@ property_body
 
 property_initializer
     : '=' variable_initializer ';'
+    ;
+
+ref_property_body
+    : '{' ref_get_accessor_declaration '}'
+    | '=>' 'ref' variable_reference ';'
     ;
 
 // Source: §15.7.3 Accessors
@@ -2085,6 +2182,16 @@ accessor_body
     : block
     | '=>' expression ';'
     | ';' 
+    ;
+
+ref_get_accessor_declaration
+    : attributes? accessor_modifier? 'get' ref_accessor_body
+    ;
+    
+ref_accessor_body
+    : block
+    | '=>' 'ref' variable_reference ';'
+    | ';'
     ;
 
 // Source: §15.8.1 General
@@ -2122,9 +2229,10 @@ remove_accessor_declaration
     : attributes? 'remove' block
     ;
 
-// Source: §15.9 Indexers
+// Source: §15.9.1 General
 indexer_declaration
     : attributes? indexer_modifier* indexer_declarator indexer_body
+    | attributes? indexer_modifier* ref_kind indexer_declarator ref_indexer_body
     ;
 
 indexer_modifier
@@ -2150,6 +2258,11 @@ indexer_body
     : '{' accessor_declarations '}' 
     | '=>' expression ';'
     ;  
+
+ref_indexer_body
+    : '{' ref_get_accessor_declaration '}'
+    | '=>' 'ref' variable_reference ';'
+    ;
 
 // Source: §15.10.1 General
 operator_declaration
@@ -2266,7 +2379,7 @@ finalizer_body
 
 // Source: §16.2.1 General
 struct_declaration
-    : attributes? struct_modifier* 'partial'? 'struct'
+    : attributes? struct_modifier* 'ref'? 'partial'? 'struct'
       identifier type_parameter_list? struct_interfaces?
       type_parameter_constraints_clause* struct_body ';'?
     ;
@@ -2282,12 +2395,12 @@ struct_modifier
     | unsafe_modifier   // unsafe code support
     ;
 
-// Source: §16.2.4 Struct interfaces
+// Source: §16.2.5 Struct interfaces
 struct_interfaces
     : ':' interface_type_list
     ;
 
-// Source: §16.2.5 Struct body
+// Source: §16.2.6 Struct body
 struct_body
     : '{' struct_member_declaration* '}'
     ;
@@ -2377,21 +2490,30 @@ interface_member_declaration
 
 // Source: §18.4.2 Interface methods
 interface_method_declaration
-    : attributes? 'new'? return_type identifier type_parameter_list?
-      '(' formal_parameter_list? ')' type_parameter_constraints_clause* ';'
+    : attributes? 'new'? return_type interface_method_header
+    | attributes? 'new'? ref_kind ref_return_type interface_method_header
+    ;
+
+interface_method_header
+    : identifier '(' formal_parameter_list? ')' ';'
+    | identifier type_parameter_list '(' formal_parameter_list? ')' type_parameter_constraints_clause* ';'
     ;
 
 // Source: §18.4.3 Interface properties
 interface_property_declaration
     : attributes? 'new'? type identifier '{' interface_accessors '}'
+    | attributes? 'new'? ref_kind type identifier '{' ref_interface_accessor '}'
     ;
 
-// Source: §18.4.3 Interface properties
 interface_accessors
     : attributes? 'get' ';'
     | attributes? 'set' ';'
     | attributes? 'get' ';' attributes? 'set' ';'
     | attributes? 'set' ';' attributes? 'get' ';'
+    ;
+
+ref_interface_accessor
+    : attributes? 'get' ';'
     ;
 
 // Source: §18.4.4 Interface events
@@ -2400,9 +2522,11 @@ interface_event_declaration
     ;
 
 // Source: §18.4.5 Interface indexers
-interface_indexer_declaration:
-    attributes? 'new'? type 'this' '[' formal_parameter_list ']'
-    '{' interface_accessors '}'
+interface_indexer_declaration
+    : attributes? 'new'? type 'this' '[' formal_parameter_list ']'
+      '{' interface_accessors '}'
+    | attributes? 'new'? ref_kind type 'this' '[' formal_parameter_list ']'
+      '{' ref_interface_accessor '}'
     ;
 
 // Source: §19.2 Enum declarations
@@ -2445,9 +2569,13 @@ enum_member_declaration
 
 // Source: §20.2 Delegate declarations
 delegate_declaration
-    : attributes? delegate_modifier* 'delegate' return_type identifier
-      variant_type_parameter_list? '(' formal_parameter_list? ')'
-      type_parameter_constraints_clause* ';'
+    : attributes? delegate_modifier* 'delegate' return_type delegate_header
+    | attributes? delegate_modifier* 'delegate' ref_kind ref_return_type delegate_header
+    ;
+
+delegate_header
+    : identifier '(' formal_parameter_list? ')' ';'
+    | identifier variant_type_parameter_list '(' formal_parameter_list? ')' type_parameter_constraints_clause* ';'
     ;
     
 delegate_modifier
@@ -2615,11 +2743,6 @@ fixed_size_buffer_declarators
 
 fixed_size_buffer_declarator
     : identifier '[' constant_expression ']'
-    ;
-
-// Source: §23.9 Stack allocation
-stackalloc_initializer
-    : 'stackalloc' unmanaged_type '[' expression ']'
     ;
 ```
 

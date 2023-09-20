@@ -298,44 +298,101 @@ A *local_variable_declaration* declares one or more local variables.
 
 ```ANTLR
 local_variable_declaration
-    : local_variable_type local_variable_declarators
-    ;
-
-local_variable_type
-    : type
-    | 'var'
-    ;
-
-local_variable_declarators
-    : local_variable_declarator
-    | local_variable_declarators ',' local_variable_declarator
-    ;
-
-local_variable_declarator
-    : identifier
-    | identifier '=' local_variable_initializer
-    ;
-
-local_variable_initializer
-    : expression
-    | array_initializer
-    | stackalloc_initializer    // unsafe code support
+    : implicitly_typed_local_variable_declaration
+    | explicitly_typed_local_variable_declaration
+    | ref_local_variable_declaration
     ;
 ```
 
-*stackalloc_initializer* ([§23.9](unsafe-code.md#239-stack-allocation)) is only available in unsafe code ([§23](unsafe-code.md#23-unsafe-code)).
+Local variable declarations fall into one of the three categories: implicitly typed, explicitly typed, and ref local.
 
-The *local_variable_type* of a *local_variable_declaration* either directly specifies the type of the variables introduced by the declaration, or indicates with the identifier `var` that the type should be inferred based on an initializer. The type is followed by a list of *local_variable_declarator*s, each of which introduces a new variable. A *local_variable_declarator* consists of an *identifier* that names the variable, optionally followed by an “`=`” token and a *local_variable_initializer* that gives the initial value of the variable.
+Implicitly typed declarations contain the contextual keyword ([§6.4.4](lexical-structure.md#644-keywords)) `var` resulting in a syntactic ambiguity between the three categories which is resolved as follows:
 
-In the context of a local variable declaration, the identifier `var` acts as a contextual keyword ([§6.4.4](lexical-structure.md#644-keywords)).When the *local_variable_type* is specified as `var` and no type named `var` is in scope, the declaration is an ***implicitly typed local variable declaration***, whose type is inferred from the type of the associated initializer expression. Implicitly typed local variable declarations are subject to the following restrictions:
+- If there is no type named `var` in scope and the input matches *implicitly_typed_local_variable_declaration* then it is chosen;
+- Otherwise if a type named `var` is in scope then *implicitly_typed_local_variable_declaration* is not considered as a possible match.
 
-- The *local_variable_declaration* cannot include multiple *local_variable_declarator*s.
-- The *local_variable_declarator* shall include a *local_variable_initializer*.
-- The *local_variable_initializer* shall be an *expression*.
-- The initializer *expression* shall have a compile-time type.
-- The initializer *expression* cannot refer to the declared variable itself
+Within a *local_variable_declaration* each variable is introduced by a ***declarator***, which is one of *implicitly_typed_local_variable_declarator*, *explicitly_typed_local_variable_declarator* or *ref_local_variable_declarator* for impicitly typed, explicitly typed and ref local variables respectively. The declarator defines the name (*identifier*) and initial value, if any, of the introduced variable.
 
-> *Example*: The following are incorrect implicitly typed local variable declarations:
+If there are multiple declarators in a declaration then they are processed, including any initializing expressions, in order left to right ([§9.4.4.5](variables.md#9445-declaration-statements)).
+
+> *Note*: For a *local_variable_declaration* not occuring as a *for_initializer* ([§13.9.4](statements.md#1394-the-for-statement)) or *resource_acquisition* ([§13.14](statements.md#1314-the-using-statement)) this left to right order is equivalent to each declarator being within a separate *local_variable_declaration*. For example:
+>
+> <!-- Example: {template:"standalone-console-without-using", name:"LocalVariableDecls2", ignoredWarnings:["CS0168","CS8321"]} -->
+> ```csharp
+> void F()
+> {
+>     int x = 1, y, z = x * 2;
+> }
+> ```
+>
+> is equivalent to:
+>
+> <!-- Example: {template:"standalone-console-without-using", name:"LocalVariableDecls3", ignoredWarnings:["CS0168","CS8321"]} -->
+> ```csharp
+> void F()
+> {
+>     int x = 1;
+>     int y;
+>     int z = x * 2;
+> }
+> ```
+>
+> *end note*
+
+The value of a local variable is obtained in an expression using a *simple_name* ([§12.8.4](expressions.md#1284-simple-names)). A local variable shall be definitely assigned ([§9.4](variables.md#94-definite-assignment)) at each location where its value is obtained. Each local variable introduced by a *local_variable_declaration* is *initially unassigned* ([§9.4.3](variables.md#943-initially-unassigned-variables)). If a declarator has an initializing expression then the introduced local variable is classified as *assigned* at the end of the declarator ([§9.4.4.5](variables.md#9445-declaration-statements)).
+
+The scope of a local variable introduced by a *local_variable_declaration* is defined as follows ([§7.7](basic-concepts.md#77-scopes)):
+
+- If the declaration occurs as a *for_initializer* then the scope is the *for_initializer*, *for_condition*, *for_iterator*, and *embedded_statement* ([§13.9.4](statements.md#1394-the-for-statement));
+- If the declaration occurs as a *resource_acquisition* then the scope is the outermost block of the semantically equivalent expansion of the *using_statement* ([§13.14](statements.md#1314-the-using-statement));
+- Otherwise the scope is the block in which the declaration occurs.
+
+It is an error to refer to a local variable by name in a textual position that precedes its declarator, or within any initializing expression within its declarator. Within the scope of a local variable, it is a compile-time error to declare another local variable, local function or constant with the same name.
+
+The ref-safe-context ([§9.7.2](variables.md#972-ref-safe-contexts)) of a ref local variable is the ref-safe-context of its initializing *variable_reference*. The ref-safe-context of non-ref local variables is *declaration-block*.
+
+#### 13.6.2.1 Implicitly typed local variable declarations
+
+```ANTLR
+implicitly_typed_local_variable_declaration
+    : 'var' implicitly_typed_local_variable_declarator
+    | ref_kind 'var' ref_local_variable_declarator
+    ;
+
+implicitly_typed_local_variable_declarator
+    : identifier '=' expression
+    ;
+```
+
+An *implicity_typed_local_variable_declaration* introduces a single local variable, *identifier*. The *expression* or *variable_reference* must have a compile-time type, `T`. The first alternative declares a variable with type `T` and an initial value of *expression*. The second alternative declares a ref variable with type `ref T` and an initial value of `ref` *variable_reference*.
+
+> *Example*:
+>
+> <!-- Example: {template:"code-in-main", name:"LocalVariableDecls4", expectedWarnings:["CS0219","CS0219"], additionalFiles:["Order.cs"]} -->
+> ```csharp
+> var i = 5;
+> var s = "Hello";
+> var d = 1.0;
+> var numbers = new int[] {1, 2, 3};
+> var orders = new Dictionary<int,Order>();
+> ref var j = ref i;
+> ref readonly var k = ref i;
+> ```
+>
+> The implicitly typed local variable declarations above are precisely equivalent to the following explicitly typed declarations:
+>
+> <!-- Example: {template:"code-in-main", name:"LocalVariableDecls5", expectedWarnings:["CS0219","CS0219"], additionalFiles:["Order.cs"]} -->
+> ```csharp
+> int i = 5;
+> string s = "Hello";
+> double d = 1.0;
+> int[] numbers = new int[] {1, 2, 3};
+> Dictionary<int,Order> orders = new Dictionary<int,Order>();
+> ref int j = ref i;
+> ref readonly int k = ref i;
+> ```
+>
+> The following are incorrect implicitly typed local variable declarations:
 >
 > <!-- Example: {template:"standalone-console-without-using", name:"LocalVariableDecls1", expectedErrors:["CS0818","CS0820","CS0815","CS8917","CS0841"], ignoredWarnings:["CS0168"]} -->
 > ```csharp
@@ -348,61 +405,52 @@ In the context of a local variable declaration, the identifier `var` acts as a c
 >
 > *end example*
 
-The value of a local variable is obtained in an expression using a *simple_name* ([§12.8.4](expressions.md#1284-simple-names)). A local variable shall be definitely assigned ([§9.4](variables.md#94-definite-assignment)) at each location where its value is obtained.
+#### 13.6.2.2 Explicitly typed local variable declarations
 
-The scope of a local variable declared in a *local_variable_declaration* is the block in which the declaration occurs. It is an error to refer to a local variable in a textual position that precedes the *local_variable_declarator* of the local variable. Within the scope of a local variable, it is a compile-time error to declare another local variable or constant with the same name.
+```ANTLR
+explicitly_typed_local_variable_declaration
+    : type explicitly_typed_local_variable_declarators
+    ;
 
-A local variable declaration that declares multiple variables is equivalent to multiple declarations of single variables with the same type. Furthermore, a variable initializer in a local variable declaration corresponds exactly to an assignment statement that is inserted immediately after the declaration.
+explicitly_typed_local_variable_declarators
+    : explicitly_typed_local_variable_declarator (',' explicitly_typed_local_variable_declarator)*
+    ;
 
-> *Example*: The example
->
-> <!-- Example: {template:"standalone-console-without-using", name:"LocalVariableDecls2", ignoredWarnings:["CS0168","CS8321"]} -->
-> ```csharp
-> void F()
-> {
->     int x = 1, y, z = x * 2;
-> }
-> ```
->
-> corresponds exactly to
->
-> <!-- Example: {template:"standalone-console-without-using", name:"LocalVariableDecls3", ignoredWarnings:["CS0168","CS8321"]} -->
-> ```csharp
-> void F()
-> {
->     int x; x = 1;
->     int y;
->     int z; z = x * 2;
-> }
-> ```
->
-> *end example*
+explicitly_typed_local_variable_declarator
+    : identifier ('=' local_variable_initializer)?
+    ;
 
-In an implicitly typed local variable declaration, the type of the local variable being declared is taken to be the same as the type of the expression used to initialize the variable.
+local_variable_initializer
+    : expression
+    | array_initializer
+    ;
+```
 
-> *Example*:
->
-> <!-- Example: {template:"code-in-main", name:"LocalVariableDecls4", expectedWarnings:["CS0219","CS0219","CS0219"], additionalFiles:["Order.cs"]} -->
-> ```csharp
-> var i = 5;
-> var s = "Hello";
-> var d = 1.0;
-> var numbers = new int[] {1, 2, 3};
-> var orders = new Dictionary<int,Order>();
-> ```
->
-> The implicitly typed local variable declarations above are precisely equivalent to the following explicitly typed declarations:
->
-> <!-- Example: {template:"code-in-main", name:"LocalVariableDecls5", expectedWarnings:["CS0219","CS0219","CS0219"], additionalFiles:["Order.cs"]} -->
-> ```csharp
-> int i = 5;
-> string s = "Hello";
-> double d = 1.0;
-> int[] numbers = new int[] {1, 2, 3};
-> Dictionary<int,Order> orders = new Dictionary<int,Order>();
-> ```
->
-> *end example*
+An *explicity_typed_local_variable_declaration* introduces one or more local variables with the specified *type*.
+
+If a *local_variable_initializer* is present then its type must be appropriate according to the rules of simple assignment ([§12.21.2](expressions.md#12212-simple-assignment)) or array initialization ([§17.7](arrays.md#177-array-initializers)) and its value is assigned as the initial value of the variable.
+
+#### 13.6.2.3 Ref local variable declarations
+
+```ANTLR
+ref_local_variable_declaration
+    : ref_kind type ref_local_variable_declarators
+    ;
+
+ref_local_variable_declarators
+    : ref_local_variable_declarator (',' ref_local_variable_declarator)*
+    ;
+
+ref_local_variable_declarator
+    : identifier '=' 'ref' variable_reference
+    ;
+```
+
+The initializing *variable_reference* must have type *type* and meet the same requirements as for a *ref assignment* ([§12.21.3](expressions.md#12213-ref-assignment)).
+
+If *ref_kind* is `ref readonly`, the *identifier*(s) being declared are references to variables that are treated as read-only. Otherwise, if *ref_kind* is `ref`, the *identifier*(s) being declared are references to variables that shall be writable.
+
+It is a compile-time error to declare a ref local variable, or a variable of a `ref struct` type, within a method declared with the *method_modifier* `async`, or within an iterator ([§15.14](classes.md#1514-iterators)).
 
 ### 13.6.3 Local constant declarations
 
@@ -428,7 +476,7 @@ The *type* and *constant_expression* of a local constant declaration shall follo
 
 The value of a local constant is obtained in an expression using a *simple_name* ([§12.8.4](expressions.md#1284-simple-names)).
 
-The scope of a local constant is the block in which the declaration occurs. It is an error to refer to a local constant in a textual position that precedes the end of its *constant_declarator*. Within the scope of a local constant, it is a compile-time error to declare another local variable or constant with the same name.
+The scope of a local constant is the block in which the declaration occurs. It is an error to refer to a local constant in a textual position that precedes the end of its *constant_declarator*. Within the scope of a local constant, it is a compile-time error to declare another local variable, local function or constant with the same name.
 
 A local constant declaration that declares multiple constants is equivalent to multiple declarations of single constants with the same type.
 
@@ -438,22 +486,33 @@ A *local_function_declaration* declares a local function.
 
 ```ANTLR
 local_function_declaration
-    : local_function_header local_function_body
+    : local_function_modifier* return_type local_function_header local_function_body
+    | ref_local_function_modifier* ref_kind ref_return_type local_function_header ref_local_function_body
     ;
 
 local_function_header
-    : local_function_modifier* return_type identifier type_parameter_list?
-        ( formal_parameter_list? ) type_parameter_constraints_clause*
+    : identifier '(' formal_parameter_list? ')'
+    | identifier type_parameter_list '(' formal_parameter_list? ')' type_parameter_constraints_clause*
     ;
+
 local_function_modifier
-    : 'async'
-    | 'unsafe'
+    : ref_local_function_modifier
+    | 'async'
+    ;
+
+ref_local_function_modifier
+    : unsafe_modifier   // unsafe code support
     ;
 
 local_function_body
     : block
     | '=>' null_conditional_invocation_expression ';'
     | '=>' expression ';'
+    ;
+
+ref_local_function_body
+    : block
+    | '=>' 'ref' variable_reference ';'
     ;
 ```
 
@@ -496,15 +555,21 @@ Grammar note: When recognising a *local_function_body* if both the *null_conditi
 
 Unless specified otherwise below, the semantics of all grammar elements is the same as for *method_declaration* ([§15.6.1](classes.md#1561-general)), read in the context of a local function instead of a method.
 
-The *identifier* of a *local_function_declaration* must be unique in its declared block scope. One consequence of this is that overloaded *local_function_declaration*s are not allowed.
+The *identifier* of a *local_function_declaration* must be unique in its declared block scope, including any enclosing local variable declaration spaces. One consequence of this is that overloaded *local_function_declaration*s are not allowed.
 
-A *local_function_declaration* may include one `async` ([§15.15](classes.md#1515-async-functions)) modifier and one `unsafe` ([§23.1](unsafe-code.md#231-general)) modifier. If the declaration includes the `async` modifier then the return type shall be `void` or a task type ([§15.15.1](classes.md#15151-general)). The `unsafe` modifier uses the containing lexical scope. The `async` modifier does not use the containing lexical scope. It is a compile-time error for *type_parameter_list* or *formal_parameter_list* to contain *attributes*.
+A *local_function_declaration* may include one `async` ([§15.15](classes.md#1515-async-functions)) modifier and one `unsafe` ([§23.1](unsafe-code.md#231-general)) modifier. If the declaration includes the `async` modifier then the return type shall be `void` or a `«TaskType»` type ([§15.15.1](classes.md#15151-general)). The `unsafe` modifier uses the containing lexical scope. The `async` modifier does not use the containing lexical scope. It is a compile-time error for *type_parameter_list* or *formal_parameter_list* to contain *attributes*.
 
-A local function is declared at block scope, and that function may capture variables from the enclosing scope. It is a compile-time error if a captured variable is read by the body of the local function but is not definitely assigned before each call to the function. The compiler shall determine which variables are definitely assigned on return ([§9.4.4.33](variables.md#94433-rules-for-variables-in-local-functions)).
+A local function is declared at block scope, and that function may capture variables from the enclosing scopes. It is a compile-time error if a captured variable is read by the body of the local function but is not definitely assigned before each call to the function. The compiler shall determine which variables are definitely assigned on return ([§9.4.4.33](variables.md#94433-rules-for-variables-in-local-functions)).
+
+When the type of `this` is a struct type, it is a compile-time error for the body of a local function to access `this`. This is true whether the access is explicit (as in `this.x`) or implicit (as in `x` where `x` is an instance member of the struct). This rule only prohibits such access and does not affect whether member lookup results in a member of the struct.
+
+It is a compile-time error for the body of the local function to contain a `goto` statement, a `break` statement, or a `continue` statement whose target is outside the body of the local function.
+
+> *Note*: the above rules for `this` and `goto` mirror the rules for anonymous functions in [§12.19.3](expressions.md#12193-anonymous-function-bodies). *end note*
 
 A local function may be called from a lexical point prior to its declaration. However, it is a compile-time error for the function to be declared lexically prior to the declaration of a variable used in the local function ([§7.7](basic-concepts.md#77-scopes)).
 
-It is a compile-time error for a local function to declare a parameter or local variable with the same name as one declared in the enclosing scope.
+It is a compile-time error for a local function to declare a parameter, type parameter or local variable with the same name as one declared in any enclosing local variable declaration space.
 
 Local function bodies are always reachable. The endpoint of a local function declaration is reachable if the beginning point of the local function declaration is reachable.
 
@@ -512,15 +577,15 @@ Local function bodies are always reachable. The endpoint of a local function dec
 >
 > <!-- Example: {template:"standalone-lib-without-using", name:"LocalFunctionDeclarations2", expectedWarnings:["CS0162"]} -->
 > ```csharp
-> class C 
+> class C
 > {
->     int M() 
+>     int M()
 >     {
 >         L();
 >         return 1;
-> 
+>
 >         // Beginning of L is not reachable
->         int L() 
+>         int L()
 >         {
 >             // The body of L is reachable
 >             return 2;
@@ -533,7 +598,7 @@ Local function bodies are always reachable. The endpoint of a local function dec
 >
 > In other words, the location of a local function declaration doesn’t affect the reachability of any statements in the containing function. *end example*
 
-If the argument to a local function is dynamic, the function to be called must be resolved at compile time, not runtime.
+If the type of the argument to a local function is `dynamic`, the function to be called must be resolved at compile time, not runtime.
 
 ## 13.7 Expression statements
 
@@ -652,25 +717,25 @@ switch_label
     : 'case' pattern case_guard?  ':'
     | 'default' ':'
     ;
-    
+
 case_guard
     : 'when' expression
     ;
 ```
 
-A *switch_statement* consists of the keyword `switch`, followed by a parenthesized expression (called the ***switch expression***), followed by a *switch_block*. The *switch_block* consists of zero or more *switch_section*s, enclosed in braces. Each *switch_section* consists of one or more *switch_label*s followed by a *statement_list* ([§13.3.2](statements.md#1332-statement-lists)). Each *switch_label* containing `case` has an associated pattern ([§11](patterns.md#11-patterns-and-pattern-matching)) against which the value of the switch expression is tested (XREF NEEDED). If *case-guard* is present, its expression shall be implicitly convertible to the type `bool` and that expression is evaluated as an additional condition for the case to be considered satisfied.
+A *switch_statement* consists of the keyword `switch`, followed by a parenthesized expression (called the ***switch expression***), followed by a *switch_block*. The *switch_block* consists of zero or more *switch_section*s, enclosed in braces. Each *switch_section* consists of one or more *switch_label*s followed by a *statement_list* ([§13.3.2](statements.md#1332-statement-lists)). Each *switch_label* containing `case` has an associated pattern ([§11](patterns.md#11-patterns-and-pattern-matching)) against which the value of the switch expression is tested. If *case_guard* is present, its expression shall be implicitly convertible to the type `bool` and that expression is evaluated as an additional condition for the case to be considered satisfied.
 
 The ***governing type*** of a `switch` statement is established by the switch expression.
 
 - If the type of the switch expression is `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `char`, `bool`, `string`, or an *enum_type*, or if it is the nullable value type corresponding to one of these types, then that is the governing type of the `switch` statement.
 - Otherwise, if exactly one user-defined implicit conversion exists from the type of the switch expression to one of the following possible governing types: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `char`, `string`, or, a nullable value type corresponding to one of those types, then the converted type is the governing type of the `switch` statement.
-- Otherwise, the governing type of the `switch` statement is the type of the switch expression.  It is an error if no such type exists.
+- Otherwise, the governing type of the `switch` statement is the type of the switch expression. It is an error if no such type exists.
 
 There can be at most one `default` label in a `switch` statement.
 
-It is an error if the pattern of any switch label is not *applicable* (NEED AN XREF) to the type of the input expression.
+It is an error if the pattern of any switch label is not *applicable* ([§11.2.1](patterns.md#1121-general)) to the type of the input expression.
 
-It is an error if the pattern of any switch label is *subsumed* by (NEED AN XREF) the set of patterns of earlier switch labels of the switch statement that do not have a case guard or whose case guard is a constant expression with the value true.
+It is an error if the pattern of any switch label is *subsumed* by ([§11.3](patterns.md#113-pattern-subsumption)) the set of patterns of earlier switch labels of the switch statement that do not have a case guard or whose case guard is a constant expression with the value true.
 
 > *Example*:
 >
@@ -682,7 +747,7 @@ It is an error if the pattern of any switch label is *subsumed* by (NEED AN XREF
 >     case var _: // error: pattern subsumed, as previous case always matches
 >         break;
 >     default:
->         break;  // warning: unreachable,
+>         break;  // warning: unreachable, all possible values already handled.
 > }
 > ```
 >
@@ -867,13 +932,13 @@ The *statement_list*s of a *switch_block* may contain declaration statements ([�
 A switch label is reachable if at least one of the following is true:
 
 - The switch expression is a constant value and either
-  - the label is a `case` whose pattern *would match* (XREF to “would match” in patterns.md) that value, and label’s guard is either absent or not a constant expression with the value false; or
+  - the label is a `case` whose pattern *would match* ([§11.2.1](patterns.md#1121-general)) that value, and label’s guard is either absent or not a constant expression with the value false; or
   - it is a `default` label, and no switch section contains a case label whose pattern would match that value, and whose guard is either absent or a constant expression with the value true.
 - The switch expression is not a constant value and either
   - the label is a `case` without a guard or with a guard whose value is not the constant false; or
   - it is a `default` label and
-    - the set of patterns appearing among the cases of the switch statement that do not have guards or have guards whose value is the constant true, is not *exhaustive* (NEED XREF) for the switch controlling type; or
-    - the switch controlling type is a nullable type and the set of patterns appearing among the cases of the switch statement that do not have guards or have guards whose value is the constant true does not contain a pattern that would match the value `null`.
+    - the set of patterns appearing among the cases of the switch statement that do not have guards or have guards whose value is the constant true, is not *exhaustive* ([§11.4](patterns.md#114-pattern-exhaustiveness)) for the switch governing type; or
+    - the switch governing type is a nullable type and the set of patterns appearing among the cases of the switch statement that do not have guards or have guards whose value is the constant true does not contain a pattern that would match the value `null`.
 - The switch label is referenced by a reachable `goto case` or `goto default` statement.
 
 The statement list of a given switch section is reachable if the `switch` statement is reachable and the switch section contains a reachable switch label.
@@ -882,11 +947,11 @@ The end point of a `switch` statement is reachable if the switch statement is re
 
 - The `switch` statement contains a reachable `break` statement that exits the `switch` statement.
 - No `default` label is present and either
-  - The switch expression is a non-constant value, and the set of patterns appearing among the cases of the switch statement that do not have guards or have guards whose value is the constant true, is not *exhaustive* (NEED XREF) for the switch governing type.
-  - The switch expression is a non-constant value of a nullable type, and no pattern appearing among the cases of the switch statement that do not have guards or have guards whose value is the constant true would match the value `null` (XREF to “would match” in patterns).
+  - The switch expression is a non-constant value, and the set of patterns appearing among the cases of the switch statement that do not have guards or have guards whose value is the constant true, is not *exhaustive* ([§11.4](patterns.md#114-pattern-exhaustiveness)) for the switch governing type.
+  - The switch expression is a non-constant value of a nullable type, and no pattern appearing among the cases of the switch statement that do not have guards or have guards whose value is the constant true would match the value `null`.
   - The switch expression is a constant value and no `case` label without a guard or whose guard is the constant true would match that value.
 
-> *Example*: The following code shows a succinct use of the when clause:
+> *Example*: The following code shows a succinct use of the `when` clause:
 >
 > ```csharp
 > static object CreateShape(string shapeDescription)
@@ -896,7 +961,7 @@ The end point of a `switch` statement is reachable if the switch statement is re
 >         case "circle":
 >             return new Circle(2);
 >         …
->         case var o when (o?.Trim().Length ?? 0) == 0:
+>         case var o when string.IsNullOrWhiteSpace(o):
 >             return null;
 >         default:
 >             return "invalid shape description";
@@ -998,7 +1063,7 @@ statement_expression_list
     ;
 ```
 
-The *for_initializer*, if present, consists of either a *local_variable_declaration* ([§13.6.2](statements.md#1362-local-variable-declarations)) or a list of *statement_expression*s ([§13.7](statements.md#137-expression-statements)) separated by commas. The scope of a local variable declared by a *for_initializer* starts at the *local_variable_declarator* for the variable and extends to the end of the embedded statement. The scope includes the *for_condition* and the *for_iterator*.
+The *for_initializer*, if present, consists of either a *local_variable_declaration* ([§13.6.2](statements.md#1362-local-variable-declarations)) or a list of *statement_expression*s ([§13.7](statements.md#137-expression-statements)) separated by commas. The scope of a local variable declared by a *for_initializer* is the *for_initializer*, *for_condition*, *for_iterator*, and *embedded_statement*.
 
 The *for_condition*, if present, shall be a *boolean_expression* ([§12.24](expressions.md#1224-boolean-expressions)).
 
@@ -1029,12 +1094,16 @@ The `foreach` statement enumerates the elements of a collection, executing an em
 
 ```ANTLR
 foreach_statement
-    : 'foreach' '(' local_variable_type identifier 'in' expression ')'
-      embedded_statement
+    : 'foreach' '(' ref_kind? local_variable_type identifier 'in' 
+      expression ')' embedded_statement
     ;
 ```
 
-The *local_variable_type* and *identifier* of a `foreach` statement declare the ***iteration variable*** of the statement. If the `var` identifier is given as the *local_variable_type*, and no type named var is in scope, the iteration variable is said to be an ***implicitly typed iteration variable***, and its type is taken to be the iteration type of the `foreach` statement, as specified below. The iteration variable corresponds to a read-only local variable with a scope that extends over the embedded statement. During execution of a `foreach` statement, the iteration variable represents the collection element for which an iteration is currently being performed. A compile-time error occurs if the embedded statement attempts to modify the iteration variable (via assignment or the `++` and `--` operators) or pass the iteration variable as a `ref` or `out` parameter.
+The *local_variable_type* and *identifier* of a foreach statement declare the ***iteration variable*** of the statement. If the `var` identifier is given as the *local_variable_type*, and no type named `var` is in scope, the iteration variable is said to be an ***implicitly typed iteration variable***, and its type is taken to be the element type of the `foreach` statement, as specified below.
+
+If the *foreach_statement* contains both or neither `ref` and `readonly`, the iteration variable denotes a variable that is treated as read-only. Otherwise, if *foreach_statement* contains `ref` without `readonly`, the iteration variable denotes a variable that shall be writable.
+
+The iteration variable corresponds to a local variable with a scope that extends over the embedded statement. During execution of a `foreach` statement, the iteration variable represents the collection element for which an iteration is currently being performed. If the iteration variable denotes a read-only variable, a compile-time error occurs if the embedded statement attempts to modify it (via assignment or the `++` and `--` operators) or pass it as a `ref` or `out` parameter.
 
 In the following, for brevity, `IEnumerable`, `IEnumerator`, `IEnumerable<T>` and `IEnumerator<T>` refer to the corresponding types in the namespaces `System.Collections` and `System.Collections.Generic`.
 
@@ -1049,20 +1118,20 @@ The compile-time processing of a `foreach` statement first determines the ***col
   - Member lookup is performed on `E` with the identifier `Current` and no type arguments. If the member lookup produces no match, the result is an error, or the result is anything except a public instance property that permits reading, an error is produced and no further steps are taken.
   - Member lookup is performed on `E` with the identifier `MoveNext` and no type arguments. If the member lookup produces no match, the result is an error, or the result is anything except a method group, an error is produced and no further steps are taken.
   - Overload resolution is performed on the method group with an empty argument list. If overload resolution results in no applicable methods, results in an ambiguity, or results in a single best method but that method is either static or not public, or its return type is not `bool`, an error is produced and no further steps are taken.
-  - The collection type is `X`, the enumerator type is `E`, and the iteration type is the type of the `Current` property.
+  - The collection type is `X`, the enumerator type is `E`, and the iteration type is the type of the `Current` property. The `Current` property may include the `ref` modifier, in which case, the expression returned is a *variable_reference* ([§9.5](variables.md#95-variable-references)) that is optionally read-only.
 - Otherwise, check for an enumerable interface:
   - If among all the types `Tᵢ` for which there is an implicit conversion from `X` to `IEnumerable<Tᵢ>`, there is a unique type `T` such that `T` is not `dynamic` and for all the other `Tᵢ` there is an implicit conversion from `IEnumerable<T>` to `IEnumerable<Tᵢ>`, then the collection type is the interface `IEnumerable<T>`, the enumerator type is the interface `IEnumerator<T>`, and the iteration type is `T`.
   - Otherwise, if there is more than one such type `T`, then an error is produced and no further steps are taken.
   - Otherwise, if there is an implicit conversion from `X` to the `System.Collections.IEnumerable` interface, then the collection type is this interface, the enumerator type is the interface `System.Collections.IEnumerator`, and the iteration type is `object`.
   - Otherwise, an error is produced and no further steps are taken.
 
-The above steps, if successful, unambiguously produce a collection type `C`, enumerator type `E` and iteration type `T`. A `foreach` statement of the form
+The above steps, if successful, unambiguously produce a collection type `C`, enumerator type `E` and iteration type `T`, `ref T`, or `ref readonly T`. A `foreach` statement of the form
 
 ```csharp
 foreach (V v in x) «embedded_statement»
 ```
 
-is then expanded to:
+is then equivalent to:
 
 ```csharp
 {
@@ -1083,6 +1152,36 @@ is then expanded to:
 ```
 
 The variable `e` is not visible to or accessible to the expression `x` or the embedded statement or any other source code of the program. The variable `v` is read-only in the embedded statement. If there is not an explicit conversion ([§10.3](conversions.md#103-explicit-conversions)) from `T` (the iteration type) to `V` (the *local_variable_type* in the `foreach` statement), an error is produced and no further steps are taken.
+
+When the iteration variable is a reference variable ([§9.7](variables.md#97-reference-variables-and-returns)), a `foreach` statement of the form
+
+```csharp
+foreach (ref V v in x) «embedded_statement»
+```
+
+is then equivalent to:
+
+```csharp
+{
+    E e = ((C)(x)).GetEnumerator();
+    try
+    {
+        while (e.MoveNext())
+        {
+            ref V v = ref e.Current;
+            «embedded_statement»
+        }
+    }
+    finally
+    {
+        ... // Dispose e
+    }
+}
+```
+
+The variable `e` is not visible or accessible to the expression `x` or the embedded statement or any other source code of the program. The reference variable `v` is read-write in the embedded statement, but `v` shall not be ref-reassigned ([§12.21.3](expressions.md#12213-ref-assignment)). If there is not an identity conversion ([§10.2.2](conversions.md#1022-identity-conversion)) from `T` (the iteration type) to `V` (the *local_variable_type* in the `foreach` statement), an error is produced and no further steps are taken.
+
+A `foreach` statement of the form `foreach (ref readonly V v in x) «embedded_statement»` has a similar equivalent form, but the reference variable `v` is `ref readonly` in the embedded statement, and therefore cannot be ref-reassigned or reassigned.
 
 > *Note*: If `x` has the value `null`, a `System.NullReferenceException` is thrown at run-time. *end note*
 
@@ -1386,17 +1485,31 @@ Because a `goto` statement unconditionally transfers control elsewhere, the end 
 
 ### 13.10.5 The return statement
 
-The `return` statement returns control to the current caller of the function member in which the return statement appears.
+The `return` statement returns control to the current caller of the function member in which the return statement appears, optionally returning a value or a *variable_reference* ([§9.5](variables.md#95-variable-references)).
 
 ```ANTLR
 return_statement
-    : 'return' expression? ';'
+    : 'return' ';'
+    | 'return' expression ';'
+    | 'return' 'ref' variable_reference ';'
     ;
 ```
 
-A function member is said to ***compute a value*** if it is a method with a non-`void` result type ([§15.6.11](classes.md#15611-method-body)), the get accessor of a property or indexer, or a user-defined operator. Function members that do not compute a value are methods with the effective return type `void`, set accessors of properties and indexers, add and remove accessors of event, instance constructors, static constructors and finalizers.
+A *return_statement* without *expression* is called a ***return-no-value***; one containing `ref` *expression* is called a ***return-by-ref***; and one containing only *expression* is called a ***return-by-value***.
 
-Within a function member, a `return` statement with no expression can only be used if the function member does not compute a value. Within a function member, a `return` statement with an expression can only be used if the function member computes a value. Where the `return` statement includes an expression, an implicit conversion ([§10.2](conversions.md#102-implicit-conversions)) shall exist from the type of the expression to the effective return type of the containing function member.
+It is a compile-time error to use a return-no-value from a method declared as being returns-by-value or returns-by-ref ([§15.6.1](classes.md#1561-general)).
+
+It is a compile-time error to use a return-by-ref from a method declared as being returns-no-value or returns-by-value.
+
+It is a compile-time error to use a return-by-value from a method declared as being returns-no-value or returns-by-ref.
+
+It is a compile-time error to use a return-by-ref if *expression* is not a *variable_reference* or is a reference to a variable whose ref-safe-context is not caller-context ([§9.7.2](variables.md#972-ref-safe-contexts)).
+
+It is a compile-time error to use a return-by-ref from a method declared with the *method_modifier* `async`.
+
+A function member is said to ***compute a value*** if it is a method with a returns-by-value method ([§15.6.11](classes.md#15611-method-body)), a returns-by-value `get` accessor of a property or indexer, or a user-defined operator. Function members that are returns-no-value do not compute a value and are methods with the effective return type `void`, `set` accessors of properties and indexers, `add` and `remove` accessors of event, instance constructors, static constructors and finalizers. Function members that are returns-by-ref do not compute a value.
+
+For a return-by-value, an implicit conversion ([§10.2](conversions.md#102-implicit-conversions)) shall exist from the type of *expression* to the effective return type ([§15.6.11](classes.md#15611-method-body)) of the containing function member. For a return-by-ref, an identity conversion ([§10.2.2](conversions.md#1022-identity-conversion)) shall exist between the type of *expression* and the effective return type of the containing function member.
 
 `return` statements can also be used in the body of anonymous function expressions ([§12.19](expressions.md#1219-anonymous-function-expressions)), and participate in determining which conversions exist for those functions ([§10.7.1](conversions.md#1071-general)).
 
@@ -1404,10 +1517,10 @@ It is a compile-time error for a `return` statement to appear in a `finally` blo
 
 A `return` statement is executed as follows:
 
-- If the `return` statement specifies an expression, the expression is evaluated and its value is converted to the effective return type of the containing function by an implicit conversion. The result of the conversion becomes the result value produced by the function.
+- For a return-by-value, *expression* is evaluated and its value is converted to the effective return type of the containing function by an implicit conversion. The result of the conversion becomes the result value produced by the function. For a return-by-ref, a reference to the *variable_reference* designated by *expression* becomes the result produced by the function. That result is a variable. If the enclosing method’s return-by-ref includes `readonly`, the resulting variable is read-only.
 - If the `return` statement is enclosed by one or more `try` or `catch` blocks with associated `finally` blocks, control is initially transferred to the `finally` block of the innermost `try` statement. When and if control reaches the end point of a `finally` block, control is transferred to the `finally` block of the next enclosing `try` statement. This process is repeated until the `finally` blocks of all enclosing `try` statements have been executed.
 - If the containing function is not an async function, control is returned to the caller of the containing function along with the result value, if any.
-- If the containing function is an async function, control is returned to the current caller, and the result value, if any, is recorded in the return task as described in ([§15.15.2](classes.md#15152-evaluation-of-a-task-returning-async-function)).
+- If the containing function is an async function, control is returned to the current caller, and the result value, if any, is recorded in the return task as described in ([§15.15.3](classes.md#15153-evaluation-of-a-task-returning-async-function)).
 
 Because a `return` statement unconditionally transfers control elsewhere, the end point of a `return` statement is never reachable.
 
@@ -1436,8 +1549,8 @@ When an exception is thrown, control is transferred to the first `catch` clause 
 - If an exception handler was not located in the current function invocation, the function invocation is terminated, and one of the following occurs:
   - If the current function is non-async, the steps above are repeated for the caller of the function with a throw point corresponding to the statement from which the function member was invoked.
 
-  - If the current function is async and task-returning, the exception is recorded in the return task, which is put into a faulted or cancelled state as described in [§15.15.2](classes.md#15152-evaluation-of-a-task-returning-async-function).
-  - If the current function is async and `void`-returning, the synchronization context of the current thread is notified as described in [§15.15.3](classes.md#15153-evaluation-of-a-void-returning-async-function).
+  - If the current function is async and task-returning, the exception is recorded in the return task, which is put into a faulted or cancelled state as described in [§15.15.3](classes.md#15153-evaluation-of-a-task-returning-async-function).
+  - If the current function is async and `void`-returning, the synchronization context of the current thread is notified as described in [§15.15.4](classes.md#15154-evaluation-of-a-void-returning-async-function).
 - If the exception processing terminates all function member invocations in the current thread, indicating that the thread has no handler for the exception, then the thread is itself terminated. The impact of such termination is implementation-defined.
 
 ## 13.11 The try statement
@@ -1481,7 +1594,7 @@ A *try_statement* consists of the keyword `try` followed by a *block*, then zero
 
 In an *exception_specifier* the *type*, or its effective base class if it is a *type_parameter*, shall be `System.Exception` or a type that derives from it.
 
-When a `catch` clause specifies both a *class_type* and an *identifier*, an ***exception variable*** of the given name and type is declared. The exception variable corresponds to a local variable with a scope that extends over the `catch` block. During execution of the *exception_filter* and `catch` block, the exception variable represents the exception currently being handled. For purposes of definite assignment checking, the exception variable is considered definitely assigned in its entire scope.
+When a `catch` clause specifies both a *class_type* and an *identifier*, an ***exception variable*** of the given name and type is declared. The exception variable is introduced into the declaration space of the *specific_catch_clause* ([§7.3](basic-concepts.md#73-declarations)). During execution of the *exception_filter* and `catch` block, the exception variable represents the exception currently being handled. For purposes of definite assignment checking, the exception variable is considered definitely assigned in its entire scope.
 
 Unless a `catch` clause includes an exception variable name, it is impossible to access the exception object in the filter and `catch` block.
 
@@ -1695,7 +1808,7 @@ resource_acquisition
 
 A ***resource*** is a class or struct that implements the `System.IDisposable` interface, which includes a single parameterless method named `Dispose`. Code that is using a resource can call `Dispose` to indicate that the resource is no longer needed.
 
-If the form of *resource_acquisition* is *local_variable_declaration* then the type of the *local_variable_declaration* shall be either dynamic or a type that can be implicitly converted to `System.IDisposable`. If the form of *resource_acquisition* is *expression* then this expression shall be implicitly convertible to `System.IDisposable`.
+If the form of *resource_acquisition* is *local_variable_declaration* then the type of the *local_variable_declaration* shall be either `dynamic` or a type that can be implicitly converted to `System.IDisposable`. If the form of *resource_acquisition* is *expression* then this expression shall be implicitly convertible to `System.IDisposable`.
 
 Local variables declared in a *resource_acquisition* are read-only, and shall include an initializer. A compile-time error occurs if the embedded statement attempts to modify these local variables (via assignment or the `++` and `--` operators), take the address of them, or pass them as `ref` or `out` parameters.
 

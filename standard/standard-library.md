@@ -21,6 +21,9 @@ It is expected that a conforming C# implementation will supply a significantly 
 
 ## C.2 Standard Library Types defined in ISO/IEC 23271
 
+> *Note:* Some `struct` types below have the `readonly` modifier. This modifier was not available
+> when ISO/IEC 23271 was released, but is required for conforming implementations of this specification. *end note*
+
 ```csharp
 namespace System
 {
@@ -91,10 +94,10 @@ namespace System
         public AttributeTargets ValidOn { get; }
     }
 
-    public struct Boolean { }
-    public struct Byte { }
-    public struct Char { }
-    public struct Decimal { }
+    public readonly struct Boolean { }
+    public readonly struct Byte { }
+    public readonly struct Char { }
+    public readonly struct Decimal { }
     public abstract class Delegate { }
 
     public class DivideByZeroException : ArithmeticException
@@ -104,7 +107,7 @@ namespace System
         public DivideByZeroException(string message, Exception innerException);
     }
 
-    public struct Double { }
+    public readonly struct Double { }
 
     public abstract class Enum : ValueType
     {
@@ -137,10 +140,10 @@ namespace System
             Exception innerException);
     }
 
-    public struct Int16 { }
-    public struct Int32 { }
-    public struct Int64 { }
-    public struct IntPtr { }
+    public readonly struct Int16 { }
+    public readonly struct Int32 { }
+    public readonly struct Int64 { }
+    public readonly struct IntPtr { }
 
     public class InvalidCastException : Exception
     {
@@ -215,8 +218,8 @@ namespace System
         public OverflowException(string message, Exception innerException);
     }
 
-    public struct SByte { }
-    public struct Single { }
+    public readonly struct SByte { }
+    public readonly struct Single { }
 
     public sealed class StackOverflowException : Exception
     {
@@ -240,10 +243,10 @@ namespace System
             Exception innerException);
     }
 
-    public struct UInt16 { }
-    public struct UInt32 { }
-    public struct UInt64 { }
-    public struct UIntPtr { }
+    public readonly struct UInt16 { }
+    public readonly struct UInt32 { }
+    public readonly struct UInt64 { }
+    public readonly struct UIntPtr { }
 
     public struct ValueTuple<T1>
     {
@@ -445,7 +448,7 @@ namespace System.Threading
 
 The following types, including the members listed, must be defined in a conforming standard library. (These types might be defined in a future edition of ISO/IEC 23271.) It is expected that many of these types will have more members available than are listed.
 
-A conforming implementation may provide `Task.GetAwaiter()` and `Task<T>.GetAwaiter()` as extension methods.
+A conforming implementation may provide `Task.GetAwaiter()` and `Task<TResult>.GetAwaiter()` as extension methods.
 
 ```csharp
 namespace System
@@ -462,6 +465,16 @@ namespace System.Linq.Expressions
 }
 namespace System.Runtime.CompilerServices
 {
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | 
+        AttributeTargets.Interface, 
+        Inherited = false, AllowMultiple = false)]
+    public sealed class AsyncMethodBuilderAttribute : Attribute
+    {
+        public AsyncMethodBuilderAttribute(Type builderType) {}
+ 
+        public Type BuilderType { get; }
+    }
+
     [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
     public sealed class CallerFilePathAttribute : Attribute
     {
@@ -496,17 +509,30 @@ namespace System.Runtime.CompilerServices
         void OnCompleted(Action continuation);
     }
 
-    public struct TaskAwaiter : ICriticalNotifyCompletion, INotifyCompletion
+    public readonly struct TaskAwaiter : ICriticalNotifyCompletion, INotifyCompletion
     {
         public bool IsCompleted { get; }
         public void GetResult();
     }
 
-    public struct TaskAwaiter<T> : ICriticalNotifyCompletion, INotifyCompletion
+    public readonly struct TaskAwaiter<TResult> : ICriticalNotifyCompletion, INotifyCompletion
     {
         public bool IsCompleted { get; }
-        public T GetResult();
+        public TResult GetResult();
     }
+
+    public readonly struct ValueTaskAwaiter : ICriticalNotifyCompletion, INotifyCompletion
+    {
+        public bool IsCompleted { get; }
+        public void GetResult();
+    }
+
+    public readonly struct ValueTaskAwaiter<TResult> : ICriticalNotifyCompletion, INotifyCompletion
+    {
+        public bool IsCompleted { get; }
+        public TResult GetResult();
+    }
+
 }
 
 namespace System.Threading.Tasks
@@ -518,6 +544,31 @@ namespace System.Threading.Tasks
     public class Task<TResult> : Task
     {
         public new System.Runtime.CompilerServices.TaskAwaiter<T> GetAwaiter();
+    }
+    public readonly struct ValueTask : System.IEquatable<ValueTask>
+    {
+        public System.Runtime.CompilerServices.ValueTaskAwaiter GetAwaiter();
+    }
+    public readonly struct ValueTask<TResult> : System.IEquatable<ValueTask<TResult>>
+    {
+        public new System.Runtime.CompilerServices.ValueTaskAwaiter<TResult> GetAwaiter();
+    }
+}
+```
+
+```csharp
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        public int Length { get; }
+        public ref readonly T this[int index] { get; }
+    }
+    public readonly ref struct Span<T>
+    {
+        public int Length { get; }
+        public ref T this[int index] { get; }
+        public static implicit operator ReadOnlySpan<T>(Span<T> span);
     }
 }
 ```
@@ -535,11 +586,11 @@ alphabetic character called the *format specifier*, and *xx* is an integer betwe
 of formatting applied to the value being represented as a string. The
 *precision specifier* controls the number of significant digits or decimal places in the string, if applicable.
 
-> *Note:* For the list of standard format specifiers, see the table below. Note that a given data type, such as `System.Int32`, might not support one or more of the standard format specifiers. *end note*
+> *Note*: For the list of standard format specifiers, see the table below. Note that a given data type, such as `System.Int32`, might not support one or more of the standard format specifiers. *end note*
 <!-- markdownlint-disable MD028 -->
 
 <!-- markdownlint-enable MD028 -->
-> *Note:* When a format includes symbols that vary by culture, such as the currencysymbol included by the ‘C’ and ‘c’ formats, a formatting object supplies the actual characters used in the string representation. A method might include a parameter to pass a `System.IFormatProvider` object that supplies a formatting object, or the method might use the default formatting object, which contains the symbol definitions for the current culture. The current culture typically uses the same set of symbols used system-wide by default. In the Base Class Library, the formatting object for system-supplied numeric types is a `System.Globalization.NumberFormatInfo` instance. For `System.DateTime` instances, a `System.Globalization.DateTimeFormatInfo` is used. *end note*
+> *Note*: When a format includes symbols that vary by culture, such as the currencysymbol included by the ‘C’ and ‘c’ formats, a formatting object supplies the actual characters used in the string representation. A method might include a parameter to pass a `System.IFormatProvider` object that supplies a formatting object, or the method might use the default formatting object, which contains the symbol definitions for the current culture. The current culture typically uses the same set of symbols used system-wide by default. In the Base Class Library, the formatting object for system-supplied numeric types is a `System.Globalization.NumberFormatInfo` instance. For `System.DateTime` instances, a `System.Globalization.DateTimeFormatInfo` is used. *end note*
 
 The following table describes the standard format specifiers and associated formatting
 object members that are used with numeric data types in the Base Class
@@ -972,7 +1023,7 @@ The following library types are referenced in this specification. The full names
 - `global::System.Threading.Tasks.Task`
 - `global::System.Threading.Tasks.Task<TResult>`
 - `global::System.Type`
-- `global::System.TypeInializationException`
+- `global::System.TypeInitializationException`
 - `global::System.UInt16`
 - `global::System.UInt32`
 - `global::System.UInt64`

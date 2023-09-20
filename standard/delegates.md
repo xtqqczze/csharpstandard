@@ -12,9 +12,13 @@ A *delegate_declaration* is a *type_declaration* ([§14.7](namespaces.md#147-typ
 
 ```ANTLR
 delegate_declaration
-    : attributes? delegate_modifier* 'delegate' return_type identifier
-      variant_type_parameter_list? '(' formal_parameter_list? ')'
-      type_parameter_constraints_clause* ';'
+    : attributes? delegate_modifier* 'delegate' return_type delegate_header
+    | attributes? delegate_modifier* 'delegate' ref_kind ref_return_type delegate_header
+    ;
+
+delegate_header
+    : identifier '(' formal_parameter_list? ')' ';'
+    | identifier variant_type_parameter_list '(' formal_parameter_list? ')' type_parameter_constraints_clause* ';'
     ;
     
 delegate_modifier
@@ -31,8 +35,6 @@ delegate_modifier
 
 It is a compile-time error for the same modifier to appear multiple times in a delegate declaration.
 
-A delegate declaration shall not supply any *type_parameter_constraints_clause*s unless it also supplies a *variant_type_parameter_list*.
-
 A delegate declaration that supplies a *variant_type_parameter_list* is a generic delegate declaration. Additionally, any delegate nested inside a generic class declaration or a generic struct declaration is itself a generic delegate declaration, since type arguments for the containing type shall be supplied to create a constructed type ([§8.4](types.md#84-constructed-types)).
 
 The `new` modifier is only permitted on delegates declared within another type, in which case it specifies that such a delegate hides an inherited member by the same name, as described in [§15.3.5](classes.md#1535-the-new-modifier).
@@ -41,7 +43,13 @@ The `public`, `protected`, `internal`, and `private` modifiers control the acces
 
 The delegate’s type name is *identifier*.
 
-The optional *formal_parameter_list* specifies the parameters of the delegate, and *return_type* indicates the return type of the delegate.
+As with methods ([§15.6.1](classes.md#1561-general)), if `ref` is present, the delegate returns-by-ref; otherwise, if *return_type* is `void`, the delegate returns-no-value; otherwise, the delegate returns-by-value.
+
+The optional *formal_parameter_list* specifies the parameters of the delegate.
+
+The *return_type* of a returns-by-value or returns-no-value delegate declaration specifies the type of the result, if any, returned by the delegate.
+
+The *ref_return_type* of a returns-by-ref delegate declaration specifies the type of the variable referenced by the *variable_reference* ([§9.5](variables.md#95-variable-references)) returned by the delegate.
 
 The optional *variant_type_parameter_list* ([§18.2.3](interfaces.md#1823-variant-type-parameter-lists)) specifies the type parameters to the delegate itself.
 
@@ -73,7 +81,7 @@ The only way to declare a delegate type is via a *delegate_declaration*. Every d
 
 ## 20.3 Delegate members
 
-Every delegate type inherits members from the `Delegate` class as described in [§15.3.4](classes.md#1534-inheritance). In addition, every delegate type must provide a non-generic `Invoke` method whose parameter list matches the *formal_parameter_list* in the delegate declaration, and whose return type matches the *return_type* in the delegate declaration. The `Invoke` method shall be at least as accessible as the containing delegate type. Calling the `Invoke` method on a delegate type is semantically equivalent to using the delegate invocation syntax ([§20.6](delegates.md#206-delegate-invocation)) .
+Every delegate type inherits members from the `Delegate` class as described in [§15.3.4](classes.md#1534-inheritance). In addition, every delegate type must provide a non-generic `Invoke` method whose parameter list matches the *formal_parameter_list* in the delegate declaration, whose return type matches the *return_type* or *ref_return_type* in the delegate declaration, and for returns-by-ref delegates whose *ref_kind* matches that in the delegate declaration. The `Invoke` method shall be at least as accessible as the containing delegate type. Calling the `Invoke` method on a delegate type is semantically equivalent to using the delegate invocation syntax ([§20.6](delegates.md#206-delegate-invocation)) .
 
 Implementations may define additional members in the delegate type.
 
@@ -83,10 +91,13 @@ Except for instantiation, any operation that can be applied to a class or class 
 
 A method or delegate type `M` is ***compatible*** with a delegate type `D` if all of the following are true:
 
-- `D` and `M` have the same number of parameters, and each parameter in `D` has the same `ref` or `out` modifiers as the corresponding parameter in `M`.
-- For each value parameter (a parameter with no `ref` or `out` modifier), an identity conversion ([§10.2.2](conversions.md#1022-identity-conversion)) or implicit reference conversion ([§10.2.8](conversions.md#1028-implicit-reference-conversions)) exists from the parameter type in `D` to the corresponding parameter type in `M`.
-- For each `ref` or `out` parameter, the parameter type in `D` is the same as the parameter type in `M`.
-- An identity or implicit reference conversion exists from the return type of `M` to the return type of `D`.
+- `D` and `M` have the same number of parameters, and each parameter in `D` has the same `in`, `out`, or `ref` modifiers as the corresponding parameter in `M`.
+- For each value parameter, an identity conversion ([§10.2.2](conversions.md#1022-identity-conversion)) or implicit reference conversion ([§10.2.8](conversions.md#1028-implicit-reference-conversions)) exists from the parameter type in `D` to the corresponding parameter type in `M`.
+- For each `in`, `out`, or `ref` parameter, the parameter type in `D` is the same as the parameter type in `M`.
+- One of the following is true:
+  - `D` and `M` are both *returns-no-value*
+  - `D` and `M` are returns-by-value ([§15.6.1](classes.md#1561-general), [§20.2](delegates.md#202-delegate-declarations)), and an identity or implicit reference conversion exists from the return type of `M` to the return type of `D`.
+  - `D` and `M` are both returns-by-ref, an identity conversion exists between the return type of `M` and the return type of `D`, and both have the same *ref_kind*.
 
 This definition of compatibility allows covariance in return type and contravariance in parameter types.
 
@@ -201,7 +212,7 @@ The set of methods encapsulated by a delegate instance is called an *invocation 
 
 When a new delegate is created from a single delegate the resultant invocation list has just one entry, which is the source delegate ([§12.8.16.6](expressions.md#128166-delegate-creation-expressions)).
 
-Delegates are combined using the binary `+` ([§12.10.5](expressions.md#12105-addition-operator)) and `+=` operators ([§12.21.3](expressions.md#12213-compound-assignment)). A delegate can be removed from a combination of delegates, using the binary `-` ([§12.10.6](expressions.md#12106-subtraction-operator)) and `-=` operators ([§12.21.3](expressions.md#12213-compound-assignment)). Delegates can be compared for equality ([§12.12.9](expressions.md#12129-delegate-equality-operators)).
+Delegates are combined using the binary `+` ([§12.10.5](expressions.md#12105-addition-operator)) and `+=` operators ([§12.21.4](expressions.md#12214-compound-assignment)). A delegate can be removed from a combination of delegates, using the binary `-` ([§12.10.6](expressions.md#12106-subtraction-operator)) and `-=` operators ([§12.21.4](expressions.md#12214-compound-assignment)). Delegates can be compared for equality ([§12.12.9](expressions.md#12129-delegate-equality-operators)).
 
 > *Example*: The following example shows the instantiation of a number of delegates, and their corresponding invocation lists:
 >
@@ -253,7 +264,7 @@ Once instantiated, a delegate instance always refers to the same invocation list
 
 C# provides special syntax for invoking a delegate. When a non-`null` delegate instance whose invocation list contains one entry, is invoked, it invokes the one method with the same arguments it was given, and returns the same value as the referred to method. (See [§12.8.9.4](expressions.md#12894-delegate-invocations) for detailed information on delegate invocation.) If an exception occurs during the invocation of such a delegate, and that exception is not caught within the method that was invoked, the search for an exception catch clause continues in the method that called the delegate, as if that method had directly called the method to which that delegate referred.
 
-Invocation of a delegate instance whose invocation list contains multiple entries, proceeds by invoking each of the methods in the invocation list, synchronously, in order. Each method so called is passed the same set of arguments as was given to the delegate instance. If such a delegate invocation includes reference parameters ([§15.6.2.3](classes.md#15623-reference-parameters)), each method invocation will occur with a reference to the same variable; changes to that variable by one method in the invocation list will be visible to methods further down the invocation list. If the delegate invocation includes output parameters or a return value, their final value will come from the invocation of the last delegate in the list. If an exception occurs during processing of the invocation of such a delegate, and that exception is not caught within the method that was invoked, the search for an exception catch clause continues in the method that called the delegate, and any methods further down the invocation list are not invoked.
+Invocation of a delegate instance whose invocation list contains multiple entries, proceeds by invoking each of the methods in the invocation list, synchronously, in order. Each method so called is passed the same set of arguments as was given to the delegate instance. If such a delegate invocation includes reference parameters ([§15.6.2.4](classes.md#15624-reference-parameters)), each method invocation will occur with a reference to the same variable; changes to that variable by one method in the invocation list will be visible to methods further down the invocation list. If the delegate invocation includes output parameters or a return value, their final value will come from the invocation of the last delegate in the list. If an exception occurs during processing of the invocation of such a delegate, and that exception is not caught within the method that was invoked, the search for an exception catch clause continues in the method that called the delegate, and any methods further down the invocation list are not invoked.
 
 Attempting to invoke a delegate instance whose value is `null` results in an exception of type `System.NullReferenceException`.
 

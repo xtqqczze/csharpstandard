@@ -377,7 +377,7 @@ The `decimal` type has greater precision but may have a smaller range than the f
 
 ### 8.3.9 The Bool type
 
-The `bool` type represents Boolean logical quantities. The possible values of type `bool` are `true` and `false`.
+The `bool` type represents Boolean logical quantities. The possible values of type `bool` are `true` and `false`. The representation of `false` is described in [§8.3.3](types.md#833-default-constructors). Although the representation of `true` is unspecified, it shall be different from that of `false`.
 
 No standard conversions exist between `bool` and other value types. In particular, the `bool` type is distinct and separate from the integral types, a `bool` value cannot be used in place of an integral value, and vice versa.
 
@@ -389,9 +389,10 @@ An enumeration type is a distinct type with named constants. Every enumeration t
 
 ### 8.3.11 Tuple types
 
-A tuple type represents an ordered, fixed-length sequence of values with optional names and individual types. The number of elements in a tuple type is referred to as its ***arity***. A tuple type is written `(T1 I1, ..., Tn In)` with n ≥ 2, where the identifiers `I1...In` are optional ***tuple element names***. This syntax is shorthand for a type constructed with the types `T1...Tn` from `System.ValueTuple<...>`, which shall be a set of generic struct types capable of expressing tuple types of any arity greater than one.
+A tuple type represents an ordered, fixed-length sequence of values with optional names and individual types. The number of elements in a tuple type is referred to as its ***arity***. A tuple type is written `(T1 I1, ..., Tn In)` with n ≥ 2, where the identifiers `I1...In` are optional ***tuple element names***.
 
-> *Note*: There does not need to exist a `System.ValueTuple<...>` declaration that directly matches the arity of any tuple type with a corresponding number of type parameters. Instead, larger tuples can be represented with a special overload `System.ValueTuple<..., TRest>` that in addition to tuple elements has a `Rest` field containing a nested tuple value of the remaining elements. Such nesting may be observable in various ways, e.g. via the presence of a `Rest` field. *end note*
+This syntax is shorthand for a type constructed with the types `T1...Tn` from `System.ValueTuple<...>`, which shall be a set of generic struct types capable of directly expressing tuple types of any arity between two and seven inclusive.
+There does not need to exist a `System.ValueTuple<...>` declaration that directly matches the arity of any tuple type with a corresponding number of type parameters. Instead, tuples with an arity greater than seven are represented with a generic struct type `System.ValueTuple<T1, ..., T7, TRest>` that in addition to tuple elements has a `Rest` field containing a nested value of the remaining elements, using another `System.ValueTuple<...>` type. Such nesting may be observable in various ways, e.g. via the presence of a `Rest` field. Where only a single additional field is required, the generic struct type `System.ValueTuple<T1>` is used; this type is not considered a tuple type in itself. Where more than seven additional fields are required, `System.ValueTuple<T1, ..., T7, TRest>` is used recursively.
 
 Element names within a tuple type shall be distinct. A tuple element name of the form `ItemX`, where `X` is any sequence of non-`0`-initiated decimal digits that could represent the position of a tuple element, is only permitted at the position denoted by `X`.
 
@@ -406,12 +407,14 @@ Tuple elements are public fields with the names `Item1`, `Item2`, etc., and can 
 <!-- markdownlint-enable MD028 -->
 > *Example*: Given the following examples:
 >
+> <!-- Example: {template:"standalone-console", name:"TupleTypes1", ignoredWarnings:["CS0219"], expectedErrors:["CS8125","CS8125"]} -->
 > ```csharp
 > (int, string) pair1 = (1, "One");
 > (int, string word) pair2 = (2, "Two");
 > (int number, string word) pair3 = (3, "Three");
 > (int Item1, string Item2) pair4 = (4, "Four");
-> (int Item2, string Item123) pair5 = (5, "Five"); // Error: "Item" names do not match their position
+> // Error: "Item" names do not match their position
+> (int Item2, string Item123) pair5 = (5, "Five");
 > (int, string) pair6 = new ValueTuple<int, string>(6, "Six");
 > ValueTuple<int, string> pair7 = (7, "Seven");
 > Console.WriteLine($"{pair2.Item1}, {pair2.Item2}, {pair2.word}");
@@ -619,7 +622,7 @@ As a type, type parameters are purely a compile-time construct. At run-time, eac
 
 ## 8.6 Expression tree types
 
-***Expression trees*** permit lambda expressions to be represented as data structures instead of executable code. Expression trees are values of ***expression tree types*** of the form `System.Linq.Expressions.Expression<TDelegate>`, where `TDelegate` is any delegate type. For the remainder of this specification we will refer to these types using the shorthand `Expression<TDelegate>`.
+***Expression trees*** permit lambda expressions to be represented as data structures instead of executable code. Expression trees are values of ***expression tree types*** of the form `System.Linq.Expressions.Expression<TDelegate>`, where `TDelegate` is any delegate type. For the remainder of this specification these types will be referred to using the shorthand `Expression<TDelegate>`.
 
 If a conversion exists from a lambda expression to a delegate type `D`, a conversion also exists to the expression tree type `Expression<TDelegate>`. Whereas the conversion of a lambda expression to a delegate type generates a delegate that references executable code for the lambda expression, conversion to an expression tree type creates an expression tree representation of the lambda expression. More details of this conversion are provided in [§10.7.3](conversions.md#1073-evaluation-of-lambda-expression-conversions-to-expression-tree-types).
 
@@ -674,7 +677,7 @@ The type `dynamic` uses dynamic binding, as described in detail in [§12.3.2](ex
   - an attribute argument
   - a constraint
   - an extension method type
-  - any part of a type argument within *struct_interfaces* ([§16.2.4](structs.md#1624-struct-interfaces)) or *interface_type_list* ([§15.2.4.1](classes.md#15241-general)).
+  - any part of a type argument within *struct_interfaces* ([§16.2.5](structs.md#1625-struct-interfaces)) or *interface_type_list* ([§15.2.4.1](classes.md#15241-general)).
 
 Because of this equivalence, the following holds:
 
@@ -693,8 +696,8 @@ unmanaged_type
     ;
 ```
 
-An *unmanaged_type* is any type that isn’t a *reference_type*, a *type_parameter*, or a constructed type, and contains no fields whose type is not an *unmanaged_type*. In other words, an *unmanaged_type* is one of the following:
+An *unmanaged_type* is any type that isn’t a *reference_type*, a *type_parameter*, or a constructed type, and contains no instance fields whose type is not an *unmanaged_type*. In other words, an *unmanaged_type* is one of the following:
 
 - `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `char`, `float`, `double`, `decimal`, or `bool`.
 - Any *enum_type*.
-- Any user-defined *struct_type* that is not a constructed type and contains fields of *unmanaged_type*s only.
+- Any user-defined *struct_type* that is not a constructed type and contains instance fields of *unmanaged_type*s only.

@@ -180,7 +180,7 @@ An expression with a pointer type cannot be used to provide the value in a *memb
 
 The default value ([§9.3](variables.md#93-default-values)) for any pointer type is `null`.
 
-> *Note*: Although pointers can be passed as `ref` or `out` parameters, doing so can cause undefined behavior, since the pointer might well be set to point to a local variable that no longer exists when the called method returns, or the fixed object to which it used to point, is no longer fixed. For example:
+> *Note*: Although pointers can be passed as `in`, `ref` or `out` parameters, doing so can cause undefined behavior, since the pointer might well be set to point to a local variable that no longer exists when the called method returns, or the fixed object to which it used to point, is no longer fixed. For example:
 >
 > <!-- Example: {template:"standalone-console-without-using", name:"PointerTypes1", replaceEllipsis:true} -->
 > <!-- Note: the behavior of this example is undefined. -->
@@ -267,7 +267,7 @@ In precise terms, a fixed variable is one of the following:
 
 All other variables are classified as moveable variables.
 
-A static field is classified as a moveable variable. Also, a `ref` or `out` parameter is classified as a moveable variable, even if the argument given for the parameter is a fixed variable. Finally, a variable produced by dereferencing a pointer is always classified as a fixed variable.
+A static field is classified as a moveable variable. Also, an `in`, `out`, or `ref` parameter is classified as a moveable variable, even if the argument given for the parameter is a fixed variable. Finally, a variable produced by dereferencing a pointer is always classified as a fixed variable.
 
 ## 23.5 Pointer conversions
 
@@ -579,7 +579,7 @@ The `&` operator does not require its argument to be definitely assigned, but fo
 <!-- markdownlint-disable MD028 -->
 
 <!-- markdownlint-enable MD028 -->
-> *Note*: When a local variable, value parameter, or parameter array is captured by an anonymous function ([§12.8.22](expressions.md#12822-anonymous-method-expressions)), that local variable, parameter, or parameter array is no longer considered to be a fixed variable ([§23.7](unsafe-code.md#237-the-fixed-statement)), but is instead considered to be a moveable variable. Thus it is an error for any unsafe code to take the address of a local variable, value parameter, or parameter array that has been captured by an anonymous function. *end note*
+> *Note*: When a local variable, value parameter, or parameter array is captured by an anonymous function ([§12.8.23](expressions.md#12823-anonymous-method-expressions)), that local variable, parameter, or parameter array is no longer considered to be a fixed variable ([§23.7](unsafe-code.md#237-the-fixed-statement)), but is instead considered to be a moveable variable. Thus it is an error for any unsafe code to take the address of a local variable, value parameter, or parameter array that has been captured by an anonymous function. *end note*
 
 ### 23.6.6 Pointer increment and decrement
 
@@ -754,7 +754,7 @@ Fixed objects can cause fragmentation of the heap (because they can’t be moved
 
 In an unsafe context, array elements of single-dimensional arrays are stored in increasing index order, starting with index `0` and ending with index `Length – 1`. For multi-dimensional arrays, array elements are stored such that the indices of the rightmost dimension are increased first, then the next left dimension, and so on to the left.
 
-Within a `fixed` statement that obtains a pointer `p` to an array instance `a`, the pointer values ranging from `p` to `p + a.Length - 1` represent addresses of the elements in the array. Likewise, the variables ranging from `p[0]` to `p[a.Length - 1]` represent the actual array elements. Given the way in which arrays are stored, we can treat an array of any dimension as though it were linear.
+Within a `fixed` statement that obtains a pointer `p` to an array instance `a`, the pointer values ranging from `p` to `p + a.Length - 1` represent addresses of the elements in the array. Likewise, the variables ranging from `p[0]` to `p[a.Length - 1]` represent the actual array elements. Given the way in which arrays are stored, an array of any dimension can be treated as though it were linear.
 
 > *Example*:
 >
@@ -870,6 +870,7 @@ A `char*` value produced by fixing a string instance always points to a null-ter
 <!-- markdownlint-enable MD028 -->
 > *Example*: The following code shows a *fixed_pointer_initializer* with an expression of type other than *array_type* or `string`:
 >
+> <!-- Example: {template:"standalone-console", name:"FixedStatement5"} -->
 > ```csharp
 > public class C
 > {
@@ -880,7 +881,7 @@ A `char*` value produced by fixing a string instance always points to a null-ter
 >
 > public class Test
 > {
->     unsafe private static void M()
+>     unsafe private static void Main()
 >     {
 >         C c = new C(10);
 >         fixed (int* p = c)
@@ -911,7 +912,7 @@ Fixed-size buffers are used to declare “C-style” in-line arrays as members o
 
 A ***fixed-size buffer*** is a member that represents storage for a fixed-length buffer of variables of a given type. A fixed-size buffer declaration introduces one or more fixed-size buffers of a given element type.
 
-> *Note*: Like an array, a fixed-size buffer can be thought of as containing elements.  As such, the term *element type* as defined for an array is also used with a fixed-size buffer. *end note*
+> *Note*: Like an array, a fixed-size buffer can be thought of as containing elements. As such, the term *element type* as defined for an array is also used with a fixed-size buffer. *end note*
 
 Fixed-size buffers are only permitted in struct declarations and may only occur in unsafe contexts ([§23.2](unsafe-code.md#232-unsafe-contexts)).
 
@@ -1046,33 +1047,42 @@ When the outermost containing struct variable of a fixed-size buffer member is a
 
 ## 23.9 Stack allocation
 
-In an unsafe context, a local variable declaration ([§13.6.2](statements.md#1362-local-variable-declarations)) may include a stack allocation initializer, which allocates memory from the call stack.
+See [§12.8.21](expressions.md#12821-stack-allocation) for general information about the operator `stackalloc`. Here, the ability of that operator to result in a pointer is discussed.
 
-```ANTLR
-stackalloc_initializer
-    : 'stackalloc' unmanaged_type '[' expression ']'
-    ;
-```
+In an unsafe context if a *stackalloc_expression* ([§12.8.21](expressions.md#12821-stack-allocation)) occurs as the initializing expression of a *local_variable_declaration* ([§13.6.2](statements.md#1362-local-variable-declarations)), where the *local_variable_type* is either a pointer type ([§23.3](unsafe-code.md#233-pointer-types)) or inferred (`var`), then the result of the *stackalloc_expression* is a pointer of type `T *` to be beginning of the allocated block, where `T` is the *unmanaged_type* of the *stackalloc_expression*.
 
-The *unmanaged_type* ([§8.8](types.md#88-unmanaged-types)) indicates the type of the items that will be stored in the newly allocated location, and the *expression* indicates the number of these items. Taken together, these specify the required allocation size. Since the size of a stack allocation cannot be negative, it is a compile-time error to specify the number of items as a *constant_expression* that evaluates to a negative value.
+In all other respects the semantics of *local_variable_declaration*s ([§13.6.2](statements.md#1362-local-variable-declarations)) and *stackalloc_expression*s ([§12.8.21](expressions.md#12821-stack-allocation)) in unsafe contexts follow those defined for safe contexts.
 
-A stack allocation initializer of the form stackalloc `T[E]` requires `T` to be an unmanaged type ([§8.8](types.md#88-unmanaged-types)) and `E` to be an expression implicitly convertible to type `int`. The construct allocates `E * sizeof(T)` bytes from the call stack and returns a pointer, of type `T*`, to the newly allocated block. If `E` is a negative value, then the behavior is undefined. If `E` is zero, then no allocation is made, and the pointer returned is implementation-defined. If there is not enough memory available to allocate a block of the given size, a `System.StackOverflowException` is thrown.
+> *Example*:
+>
+> <!-- Example: {template:"standalone-console-without-using", name:"UnsafeStackAllocation1", expectedErrors:["CS8346"]} -->
+> ```csharp
+> unsafe 
+> {
+>     // Memory uninitialized
+>     int* p1 = stackalloc int[3];
+>     // Memory initialized
+>     int* p2 = stackalloc int[3] { -10, -15, -30 };
+>     // Type int is inferred
+>     int* p3 = stackalloc[] { 11, 12, 13 };
+>     // Can't infer context, so pointer result assumed
+>     var p4 = stackalloc[] { 11, 12, 13 };
+>     // Error; no conversion exists
+>     long* p5 = stackalloc[] { 11, 12, 13 };
+>     // Converts 11 and 13, and returns long*
+>     long* p6 = stackalloc[] { 11, 12L, 13 };
+>     // Converts all and returns long*
+>     long* p7 = stackalloc long[] { 11, 12, 13 };
+> }
+> ```
+>
+> *end example*
 
-The content of the newly allocated memory is undefined.
+Unlike access to arrays or `stackalloc`’ed blocks of `Span<T>` type, access to the elements of a `stackalloc`’ed block of pointer type is an unsafe operation and is not range checked.
 
-Stack allocation initializers are not permitted in `catch` or `finally` blocks ([§13.11](statements.md#1311-the-try-statement)).
-
-> *Note*: There is no way to explicitly free memory allocated using stackalloc. *end note*
-
-All stack-allocated memory blocks created during the execution of a function member are automatically discarded when that function member returns.
-
-> *Note*: This corresponds to the `alloca` function, an extension commonly found in C and C++ implementations. *end note*
-<!-- markdownlint-disable MD028 -->
-
-<!-- markdownlint-enable MD028 -->
 > *Example*: In the following code
 >
-> <!-- Example: {template:"standalone-console", name:"StackAllocation", expectedOutput:["12345","-999"]} -->
+> <!-- Example: {template:"standalone-console", name:"UnsafeStackAllocation2", expectedOutput:["12345","-999"]} -->
 > ```csharp
 > class Test
 > {
@@ -1108,10 +1118,37 @@ All stack-allocated memory blocks created during the execution of a function mem
 > }
 > ```
 >
-> a `stackalloc` initializer is used in the `IntToString` method to allocate a buffer of 16 characters on the stack. The buffer is automatically discarded when the method returns.
+> a `stackalloc` expression is used in the `IntToString` method to allocate a buffer of 16 characters on the stack. The buffer is automatically discarded when the method returns.
+>
+> Note, however, that `IntToString` can be rewritten in safe mode; that is, without using pointers, as follows:
+>
+> <!-- Example: {template:"standalone-lib", name:"UnsafeStackAllocation3"} -->
+> ```csharp
+> class Test
+> {
+>     static string IntToString(int value)
+>     {
+>         if (value == int.MinValue)
+>         {
+>             return "-2147483648";
+>         }
+>         int n = value >= 0 ? value : -value;
+>         Span<char> buffer = stackalloc char[16];
+>         int idx = 16;
+>         do
+>         {
+>             buffer[--idx] = (char)(n % 10 + '0');
+>             n /= 10;
+>         } while (n != 0);
+>         if (value < 0)
+>         {
+>             buffer[--idx] = '-';
+>         }
+>         return buffer.Slice(idx).ToString();
+>     }
+> }
+> ```
 >
 > *end example*
-
-Except for the `stackalloc` operator, C# provides no predefined constructs for managing non-garbage collected memory. Such services are typically provided by supporting class libraries or imported directly from the underlying operating system.
 
 **End of conditionally normative text.**
